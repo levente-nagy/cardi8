@@ -1,0 +1,50 @@
+
+
+.banner{
+  width: 50rem;
+  max-width: 100%;
+}
+
+.banner_brand{
+  width: 20rem;
+  max-width: 100%;
+  margin: 1rem;
+}
+
+.login_button {
+  width: 15rem;
+}
+
+
+button:hover {
+  border-color: black !important;
+}
+
+#normal_login{
+  width: 20rem;
+}
+.sub,.header_fisa{
+  text-align: center;
+}
+
+.fisa{
+  margin:0 5rem;
+}
+
+.fisa_pacient{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0 5rem;
+  
+}
+.avatar{
+  margin: 0.8rem
+}
+
+.ant-table-wrapper {
+  height: 80vh;
+}
+
+
+
