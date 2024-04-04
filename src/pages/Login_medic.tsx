@@ -1,24 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore'; 
 import { Form, Input, Button, ConfigProvider, Flex} from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { app } from './firebase';
+import { app } from './Firebase';
+
 
 const Login_medic: React.FC = () => {
 
     const [authError, setAuthError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const db = getFirestore(app);
 
     const onFinish = (values: any) => {
         const auth = getAuth(app);
         signInWithEmailAndPassword(auth, values.username, values.password)
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 // Signed in 
                 const user = userCredential.user;
                 if (user.email && user.email.endsWith('@cardi8.ro')) {
                     setAuthError(null); 
                     navigate('/pacienti'); 
+                    
+                    let emailParts = user.email.split('@');
+                    let fullName = emailParts[0];
+                    fullName = fullName.replace('_', ' ');
+
+                    await setDoc(doc(db, 'medici', user.uid), {
+                      email: user.email,
+                      nume: fullName,
+                      
+                  });
                 } else {
                     setAuthError('Numele de utilizator sau parola sunt incorecte.');
                 }

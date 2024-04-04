@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { Form, Input, Button, ConfigProvider, Flex} from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { app } from './firebase';
+import { app } from './Firebase';
 
 const Login_pacient: React.FC = () => {
 

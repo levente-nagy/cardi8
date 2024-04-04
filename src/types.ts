@@ -1,10 +1,13 @@
 export interface Item {
+  uid: string;
   key: React.Key;
-  id: number;
+  id: string;
+  nume_medic: string;
   nume: string;
   prenume: string;
+  nume_prenume: string;
   varsta: number; 
-  cnp: number;
+  CNP: number;
   adresa: string;
   strada: string;
   numar: string;
@@ -15,13 +18,13 @@ export interface Item {
   judet: string; 
   oras: string; 
   contact: string;
-  numarTelefon: number;
-  adresaEmail: string;
+  telefon: number;
+  email: string;
   profesie: string;
   locDeMunca: string;
   detalii_medicale: string;
-  istoricMedical: string; 
+  istoric: string; 
   alergii: string; 
-  consultatiiCardiologice: string; 
+  consultatii: string; 
   
 }

@@ -8,7 +8,6 @@ interface Props {
   existingItem?: Item | null;
   onAdd: (newItem: Item) => void;
   onUpdate: (updatedItem: Item) => void;
-  onClose: () => void;
 }
 
 
@@ -42,7 +41,7 @@ const ValorileActuale: DescriptionsProps['items'] = [
 ];
 
 
-const DateModulInteligent: React.FC<Props> = ({ existingItem, onAdd, onUpdate, onClose }) => {
+const DateModulInteligent: React.FC<Props> = ({ existingItem, onAdd, onUpdate }) => {
   const [form] = Form.useForm();
   
 
@@ -52,7 +51,6 @@ const DateModulInteligent: React.FC<Props> = ({ existingItem, onAdd, onUpdate, o
     } else {
       onAdd(values);
     }
-    onClose();
     form.resetFields();
   };
 

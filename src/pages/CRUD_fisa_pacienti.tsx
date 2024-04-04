@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { Form, Input, Button, InputNumber, Space, ConfigProvider, Typography } from 'antd';
 import { Item } from '../types';
 const { Title } = Typography;
@@ -9,17 +9,33 @@ interface Props {
   onUpdate: (updatedItem: Item) => void;
 }
 
+
 const CRUD_fisa_pacienti: React.FC<Props> = ({ existingItem, onAdd, onUpdate }) => {
   const [form] = Form.useForm();
+  const [formData, setFormData] = useState<Item | {}>({});
 
   const onFinish = (values: Item) => {
+    const valuesWithNull: Item = Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, value === undefined ? null : value])
+    ) as Item;
+    
     if (existingItem) {
-      onUpdate({ ...existingItem, ...values });
+      onUpdate({ ...existingItem, ...valuesWithNull });
     } else {
-      onAdd(values);
+      onAdd(valuesWithNull);
     }
     form.resetFields();
   };
+
+  useEffect(() => {
+    if (existingItem) {
+      setFormData(existingItem);
+    } else {
+      setFormData({});
+    }
+    form.resetFields();
+  }, [existingItem]);
+
 
   return (
     <>
@@ -32,7 +48,7 @@ const CRUD_fisa_pacienti: React.FC<Props> = ({ existingItem, onAdd, onUpdate }) 
           },
         }}
       >
-    <Form form={form} layout="vertical" onFinish={onFinish} initialValues={existingItem || undefined} autoComplete='off'>
+    <Form form={form} layout="vertical" onFinish={onFinish} initialValues={formData} autoComplete='off'>
     
     <Title level={5}>Date personale</Title>
  
