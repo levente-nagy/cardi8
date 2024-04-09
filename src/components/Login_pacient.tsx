@@ -74,7 +74,7 @@ const Login_pacient: React.FC = () => {
               <Form.Item className='sub'>
             
                 <Button type="primary" shape="round" htmlType="submit" className="login-form-button">
-                  Authentificare
+                  Autentificare
                 </Button>
             
               </Form.Item>
