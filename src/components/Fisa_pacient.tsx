@@ -11,6 +11,7 @@ const UserProfilePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [medicName, setMedicName] = useState<string | null>(null);
 
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -75,6 +76,10 @@ const UserProfilePage: React.FC = () => {
       return null;
     }
   };
+
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
 
   const userId = auth.currentUser?.uid;
 

@@ -50,3 +50,5 @@ button:hover {
   display: none;
 }
 
+.ant-descriptions-item-content
+{white-space: pre-wrap;}
