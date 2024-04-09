@@ -76,6 +76,8 @@ const Tabel_pacienti: React.FC = () => {
  
   ];
 
+  
+
   const getCurrentUser = () => {
     const user = auth.currentUser; 
     return user ? user.uid : null; 
@@ -311,19 +313,19 @@ const Tabel_pacienti: React.FC = () => {
  
 
     <Space direction="horizontal" size={15}>
-      <Form.Item label="Nume" name="nume">
+      <Form.Item label="Nume" name="nume"  rules={[{ required: true, message: 'Vă rog să introduceți numele.' }]}>
         <Input/>
       </Form.Item>
-      <Form.Item label="Prenume" name="prenume" >
+      <Form.Item label="Prenume" name="prenume" rules={[{ required: true, message: 'Vă rog să introduceți prenumele.' }]}>
         <Input/>
       </Form.Item>
     </Space>
    
     <Space direction="horizontal" size={15}>
-    <Form.Item label="Vârstă" name="varsta">
+    <Form.Item label="Vârstă" name="varsta" rules={[{ required: true, message: 'Vă rog să introduceți vârsta.' }]}>
         <InputNumber min={1} max={99} maxLength={2} style={{ width: 60 }}/>
     </Form.Item>
-    <Form.Item label="CNP" name="CNP">
+    <Form.Item label="CNP" name="CNP" rules={[{ required: true, message: 'Vă rog să introduceți CNP.' }]}>
         <InputNumber maxLength={13} style={{ width: 150 }}/>
       </Form.Item>
       </Space>
@@ -331,10 +333,10 @@ const Tabel_pacienti: React.FC = () => {
       
 
       <Space direction="horizontal" size={15}>
-      <Form.Item label="Stradă" name="strada">
+      <Form.Item label="Stradă" name="strada" rules={[{ required: true, message: 'Vă rog să introduceți strada.' }]}>
         <Input />
       </Form.Item>
-      <Form.Item label="Număr" name="numar" >
+      <Form.Item label="Număr" name="numar" rules={[{ required: true, message: 'Vă rog să introduceți numărul.' }]}>
         <Input style={{ width: 60 }} />
       </Form.Item>
       <Form.Item label="Bloc" name="bloc" >
@@ -350,43 +352,52 @@ const Tabel_pacienti: React.FC = () => {
 
       <Space direction="horizontal" size={15}>
   
-      <Form.Item label="Oraș" name="oras">
+      <Form.Item label="Oraș" name="oras" rules={[{ required: true, message: 'Vă rog să introduceți orașul.' }]}>
         <Input style={{ width: 120 }} />
       </Form.Item>
-      <Form.Item label="Judeţ" name="judet" >
+      <Form.Item label="Judeţ" name="judet" rules={[{ required: true, message: 'Vă rog să introduceți judeţul.' }]}>
         <Input style={{ width: 120 }}/>
       </Form.Item>
-      <Form.Item label="Cod poștal" name="codPostal">
+      <Form.Item label="Cod poștal" name="codPostal" rules={[{ required: true, message: 'Vă rog să introduceți codul poștal.' }]}>
         <InputNumber maxLength={6}/>
       </Form.Item>
       </Space>
       <Title level={5}>Contact</Title>
      
       <Space direction="horizontal" size={15}>
-      <Form.Item label="Număr telefon" name="telefon">
+      <Form.Item label="Număr telefon" name="telefon" rules={[{ required: true, message: 'Vă rog să introduceți numărul de telefon.' }]}>
         <Input maxLength={10} style={{ width: 100 }}/>
       </Form.Item>
-      <Form.Item label="Adresă email" name="email">
+      <Form.Item label="Adresă email" name="email" rules={[
+      {
+        type: 'email',
+        message: 'Vă rog să introduceți o adresă de email valida.',
+      },
+      {
+        required: true,
+        message: 'Vă rog să introduceți adresa de email.',
+      },
+    ]}>
         <Input style={{ width: 250 }}/>
       </Form.Item>
       </Space>
       <Space direction="horizontal" size={15}>
-      <Form.Item label="Profesie" name="profesie">
+      <Form.Item label="Profesie" name="profesie" rules={[{ required: true, message: 'Vă rog să introduceți profesia.' }]}>
         <Input />
       </Form.Item>
-      <Form.Item label="Loc de muncă" name="locDeMunca">
+      <Form.Item label="Loc de muncă" name="locDeMunca" rules={[{ required: true, message: 'Vă rog să introduceți locul de muncă.' }]}>
         <Input />
       </Form.Item>
      </Space>
      <Title level={5}>Detalii medicale</Title>
       
-      <Form.Item label="Istoric medical" name="istoric">
+      <Form.Item label="Istoric medical" name="istoric" rules={[{ required: true, message: 'Vă rog să introduceți istoricul medical.' }]}>
         <Input.TextArea />
       </Form.Item>
-      <Form.Item label="Alergii" name="alergii">
+      <Form.Item label="Alergii" name="alergii" rules={[{ required: true, message: 'Vă rog să introduceți alergiile.' }]}>
         <Input.TextArea />
       </Form.Item>
-      <Form.Item label="Consultaţii cardiologice" name="consultatii">
+      <Form.Item label="Consultaţii cardiologice" name="consultatii" rules={[{ required: true, message: 'Vă rog să introduceți consultaţiile cardiologice.' }]}>
         <Input.TextArea />
       </Form.Item>
 

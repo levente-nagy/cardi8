@@ -90,7 +90,7 @@ const Login_medic: React.FC = () => {
                 className='pass'
                 validateStatus={authError ? 'error' : ''}
                >
-                <Input
+                <Input.Password
                   prefix={<LockOutlined className="site-form-item-icon" />}
                   type="password"
                   placeholder="Parola"
