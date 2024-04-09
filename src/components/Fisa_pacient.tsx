@@ -23,7 +23,6 @@ const UserProfilePage: React.FC = () => {
             const userData = userDoc.data();
             setUserData(userData);
 
-            // Check if medic_id exists
             if (userData.medic_id) {
               const medicName = await fetchMedicName(userData.medic_id);
               setMedicName(medicName);
@@ -76,10 +75,6 @@ const UserProfilePage: React.FC = () => {
       return null;
     }
   };
-
-  if (!userData) {
-    return <div>Loading...</div>;
-  }
 
   const userId = auth.currentUser?.uid;
 
