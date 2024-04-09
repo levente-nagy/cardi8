@@ -371,7 +371,7 @@ const Tabel_pacienti: React.FC = () => {
       <Form.Item label="Adresă email" name="email" rules={[
       {
         type: 'email',
-        message: 'Vă rog să introduceți o adresă de email valida.',
+        message: 'Vă rog să introduceți o adresă de email validă.',
       },
       {
         required: true,
