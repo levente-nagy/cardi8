@@ -1,10 +1,10 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Login_medic from './pages/Login_medic';
-import Login_pacient from './pages/Login_pacient';
-import Pacienti from './pages/Tabel_pacienti';
-import Fisa_pacient from './pages/Afisare_fisa_pacient';
+import Home from './components/Home';
+import Login_medic from './components/Login_medic';
+import Login_pacient from './components/Login_pacient';
+import Pacienti from './components/Tabel_pacienti';
+import Fisa_pacient from './components/Fisa_pacient';
 import './App.css';
 
 const App: React.FC = () => {

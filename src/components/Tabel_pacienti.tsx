@@ -1,12 +1,10 @@
 import  { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
+import { db,  createUser, auth  } from './Firebase'
 import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
-import { db } from './Firebase'; 
-
-
 
 
 
@@ -16,7 +14,7 @@ const Tabel_pacienti: React.FC = () => {
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [form] = Form.useForm();
-  const patientsCollectionRef = collection(db, "pacienti"); 
+  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
@@ -78,10 +76,33 @@ const Tabel_pacienti: React.FC = () => {
  
   ];
 
+  const getCurrentUser = () => {
+    const user = auth.currentUser; 
+    return user ? user.uid : null; 
+  };
+  
+
   useEffect(() => {
+    const medic_id = getCurrentUser();
+    setLoggedInUserId(medic_id);
     const getPatients = async () => {
-      const data = await getDocs(patientsCollectionRef);
-      setDataSource(data.docs.map((doc) => ({ ...doc.data(), id: doc.id }) as Item));
+      if (medic_id) {
+        const medicDocRef = doc(db, "medici", medic_id);
+        const unsubscribe = onSnapshot(medicDocRef, async (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const pacientiArray = docSnapshot.data().pacienti || [];
+            const patientsPromises = pacientiArray.map(async (patientId: string) => {
+              const patientDocSnapshot = await getDoc(doc(db, "pacienti", patientId));
+              return { ...patientDocSnapshot.data(), id: patientDocSnapshot.id } as Item;
+            });
+            const patients = await Promise.all(patientsPromises);
+            setDataSource(patients);
+          } else {
+            setDataSource([]);
+          }
+        });
+        return () => unsubscribe();
+      }
     };
     getPatients();
   }, []);
@@ -130,7 +151,49 @@ const Tabel_pacienti: React.FC = () => {
     }
     setIsModalVisible(true);
   };
+
+
+
+
+  const addPatient = async (patientData: Item) => {
+    try {
+      const medic_id = loggedInUserId;
+      const userCredential = await createUser(patientData.email, '123456');
   
+      if (userCredential) {
+        const patientUid = userCredential.user.uid;
+  
+        await setDoc(doc(db, "pacienti", patientUid), {
+          ...patientData,
+          medic_id: medic_id 
+        });
+  
+        console.log('Patient added:', patientData);
+  
+        if (medic_id) { 
+          const medicDocRef = doc(db, "medici", medic_id);
+          await updateDoc(medicDocRef, {
+            pacienti: arrayUnion(patientUid)
+          });
+        } else {
+          console.error('No user logged in.');
+        }
+  
+        if (medic_id && patientData.medic_id === medic_id) {
+          setDataSource(prevDataSource => {
+            const newDataSource = [...prevDataSource, { ...patientData, id: patientUid }];
+              return newDataSource.filter(patient => patient.medic_id === medic_id);
+          });
+        }
+        
+      } else {
+        console.error('No user created.');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+    }
+  };
+
 
 
   const handleOk = async () => {
@@ -172,14 +235,19 @@ const Tabel_pacienti: React.FC = () => {
       if (editing) {
         await updateDoc(doc(db, "pacienti", editing.id), processedValues);
       } else {
-        await addDoc(patientsCollectionRef, processedValues);
+        await addPatient(processedValues as Item); 
       }
-        
+  
       setIsModalVisible(false);
       setEditing(null);
       form.resetFields();
+  
       const data = await getDocs(collection(db, "pacienti"));
-      setDataSource(data.docs.map((doc) => ({ ...doc.data(), id: doc.id }) as Item));
+      const filteredData = data.docs
+        .map((doc) => ({ ...doc.data(), id: doc.id }) as Item)
+        .filter((patient) => patient.medic_id === loggedInUserId);
+  
+      setDataSource(filteredData);
     });
   };
 
@@ -188,8 +256,17 @@ const Tabel_pacienti: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, "pacienti", id));
-      const data = await getDocs(patientsCollectionRef);
-      setDataSource(data.docs.map((doc) => ({ ...doc.data(), id: doc.id }) as Item));
+  
+      if (loggedInUserId) {
+        const medicDocRef = doc(db, "medici", loggedInUserId);
+        await updateDoc(medicDocRef, {
+          pacienti: arrayRemove(id)
+        });
+      } else {
+        console.error('No user logged in.');
+      }
+  
+      setDataSource(prevDataSource => prevDataSource.filter(patient => patient.id !== id));
     } catch(error) {
       console.error("Error deleting patient:", error);
     }

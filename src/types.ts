@@ -1,4 +1,5 @@
 export interface Item {
+  medic_id: string;
   uid: string;
   key: React.Key;
   id: string;

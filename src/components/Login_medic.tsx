@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore'; 
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'; 
 import { Form, Input, Button, ConfigProvider, Flex} from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { app } from './Firebase';
@@ -14,35 +14,48 @@ const Login_medic: React.FC = () => {
     const db = getFirestore(app);
 
     const onFinish = (values: any) => {
-        const auth = getAuth(app);
-        signInWithEmailAndPassword(auth, values.username, values.password)
-            .then(async (userCredential) => {
-                // Signed in 
-                const user = userCredential.user;
-                if (user.email && user.email.endsWith('@cardi8.ro')) {
-                    setAuthError(null); 
-                    navigate('/pacienti'); 
-                    
-                    let emailParts = user.email.split('@');
-                    let fullName = emailParts[0];
-                    fullName = fullName.replace('_', ' ');
-
-                    await setDoc(doc(db, 'medici', user.uid), {
-                      email: user.email,
-                      nume: fullName,
-                      
+      const auth = getAuth(app);
+      signInWithEmailAndPassword(auth, values.username, values.password)
+          .then(async (userCredential) => {
+           
+              const user = userCredential.user;
+              if (user.email && user.email.endsWith('@cardi8.ro')) {
+                  setAuthError(null); 
+                  navigate('/pacienti'); 
+                  
+                  let emailParts = user.email.split('@');
+                  let fullName = emailParts[0];
+                  
+                 
+                  fullName = fullName.replace('_', ' ');
+                  
+               
+                  fullName = fullName.toLowerCase().replace(/\b\w/g, function (char) {
+                    return char.toUpperCase();
                   });
-                } else {
-                    setAuthError('Numele de utilizator sau parola sunt incorecte.');
-                }
-            })
-            .catch((error) => {
-            var errorCode = error.code;
-            if (errorCode === 'auth/invalid-credential') {
-                setAuthError('Numele de utilizator sau parola sunt incorecte.');
-            }
+  
+                 
+                  const userDocRef = doc(db, 'medici', user.uid);
+                  const userDocSnapshot = await getDoc(userDocRef);
+  
+                  if (!userDocSnapshot.exists()) {
+                      await setDoc(userDocRef, {
+                          email: user.email,
+                          nume: fullName,
+                      });
+                  }
+              } else {
+                  setAuthError('Numele de utilizator sau parola sunt incorecte.');
+              }
+          })
+          .catch((error) => {
+              var errorCode = error.code;
+              if (errorCode === 'auth/invalid-credential') {
+                  setAuthError('Numele de utilizator sau parola sunt incorecte.');
+              }
           });
-    };
+  };
+  
 
     return (
         <ConfigProvider
