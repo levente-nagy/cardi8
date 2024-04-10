@@ -1,7 +1,7 @@
 import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
-import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm } from 'antd';
+import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm, Descriptions, DescriptionsProps } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
@@ -11,6 +11,8 @@ import { Item } from '../types';
 const Tabel_pacienti: React.FC = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModulInteligentVisible, setModulInteligentVisible] = useState(false);
+  const [isRecomandariVisible, setRecomandariVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [form] = Form.useForm();
@@ -38,22 +40,11 @@ const Tabel_pacienti: React.FC = () => {
     )},
 
     {
-      title: 'Alarmă',
-      key: 'alarma',
-      render: () => (
-       
-        <Space size="small" direction="vertical">
-          <Switch />
-        </Space>
-    
-      ),
-    },
-    {
       title: 'Date modul\ninteligent',
       key: 'modul_inteligent',
       width: 80,
-      render: () => (
-        <Button shape="round" className="view_button">
+      render: (record: Item) => (
+        <Button shape="round" className="view_button" onClick={() =>{ showModulInteligent(record);}}>
           <EyeFilled />
         </Button>
           
@@ -74,6 +65,28 @@ const Tabel_pacienti: React.FC = () => {
       ),
     },
  
+  ];
+
+  const ValorileActualeModul: DescriptionsProps['items'] = [
+
+    {
+      key: '1',
+      label: 'Puls',
+      children: 'N/A',
+      span: 3,
+    },
+    {
+      key: '2',
+      label: 'Temperatură',
+      children: 'N/A',
+      span: 3,
+    },
+    {
+      key: '3',
+      label: 'Umiditate',
+      children: 'N/A',
+      span: 3,
+    },
   ];
 
   
@@ -120,6 +133,7 @@ const Tabel_pacienti: React.FC = () => {
 
       let strada = adresaParts[0] || '';
       let numar = adresaParts[1] && adresaParts[1].includes('Nr. ') ? adresaParts[1].replace('Nr. ', '') : '';
+
       let bloc = adresaParts.find(part => part.includes('Bl. ')) ? adresaParts.find(part => part.includes('Bl. '))!.replace('Bl. ', '') : '';
       let etaj = adresaParts.find(part => part.includes('Et. ')) ? adresaParts.find(part => part.includes('Et. '))!.replace('Et. ', '') : '';
       let apartament = adresaParts.find(part => part.includes('Ap. ')) ? adresaParts.find(part => part.includes('Ap. '))!.replace('Ap. ', '') : '';
@@ -127,6 +141,7 @@ const Tabel_pacienti: React.FC = () => {
       let codPostal = adresaParts.find(part => part.includes('Cod poștal: ')) ? adresaParts.find(part => part.includes('Cod poștal: '))!.replace('Cod poștal: ', '') : '';
       let oras = adresaParts.find(part => part.includes('Loc. ')) ? adresaParts.find(part => part.includes('Loc. '))!.replace('Loc. ', '') : '';
       let judet = adresaParts.find(part => part.includes('Jud. ')) ? adresaParts.find(part => part.includes('Jud. '))!.replace('Jud. ', '') : '';
+      
       const initialValues = {
         nume,
         prenume,
@@ -278,6 +293,34 @@ const Tabel_pacienti: React.FC = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
     setEditing(null);
+    
+  };
+
+  const handleCancelModul = () => {
+    setModulInteligentVisible(false);
+  };
+
+  const handleCancelRecomandari = () => {
+    setRecomandariVisible(false);
+  };
+
+
+  const showModulInteligent = (record: Item | null) => {
+    if (record) {
+      
+    } else {
+      form.resetFields();
+    }
+    setModulInteligentVisible(true);
+  };
+
+  const showRecomandari = (record: Item | null) => {
+    if (record) {
+      
+    } else {
+      form.resetFields();
+    }
+    setRecomandariVisible(true);
   };
       
   return (
@@ -411,6 +454,104 @@ const Tabel_pacienti: React.FC = () => {
       
     </Form>
     </Modal>
+    <Modal title="Date modul inteligent"
+    open={isModulInteligentVisible} 
+    okText="Salvează"
+     
+        onCancel={handleCancelModul}
+        footer={null} 
+    >
+    <Title level={4}>Valori citite:</Title>
+        <Descriptions bordered items={ValorileActualeModul} size="small" />
+        <br/>
+       
+       <Form form={form}  autoComplete='off'>
+       <div className='delimiter'>
+       <Title level={4}>Limite:</Title>
+       <Title level={5}>Puls</Title>
+       <Space direction="horizontal" size={15}>
+        <Form.Item label="Minim" name="puls_min">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        <Form.Item label="Maxim" name="puls_max" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Space>
+
+       <Title level={5}>Temperatură</Title>
+       <Space direction="horizontal" size={15}>
+        <Form.Item label="Minim" name="temp_min">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        <Form.Item label="Maxim" name="temp_max" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Space>
+       
+        <Title level={5}>Umiditate</Title>
+       <Space direction="horizontal" size={15}>
+        <Form.Item label="Minim" name="umid_min">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        <Form.Item label="Maxim" name="umid_max" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Space>
+        </div>  
+        <br/>
+        <div className='delimiter'>  
+        <Title level={4}>ECG:</Title>
+        <div>Afisam ceva aici</div>
+        </div>  
+        <br/>
+        <div className='delimiter'>
+        <Title level={4}>Recomandări:</Title>
+        <div>Afisam recomandarile aici, pe rand</div>  
+        <br/>
+        <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showRecomandari(null)}} >
+            Adaugă
+        </Button>  
+        <Modal title="Recomandări" open={isRecomandariVisible} 
+         okText="Salvează"
+         onCancel={handleCancelRecomandari}
+         footer={null} >  
+        
+        <Title level={5}>Tip</Title>
+         <Form.Item   name="tip">
+         <Input style={{ width: 200 }}/>
+        </Form.Item>
+        <Title level={5}>Durată zilnică</Title>
+        <Form.Item   name="durata">
+         <Input style={{ width: 200 }}/>
+        </Form.Item>
+        <Title level={5}>Alte indicaţii</Title>
+        <Form.Item   name="altele">
+         <Input.TextArea/>
+        </Form.Item>
+        <Form.Item>
+          <Button shape="round" type="primary" htmlType="submit">
+            Salvează
+          </Button>
+        </Form.Item>
+         
+        </Modal>
+        </div>
+        <br/>
+        <div className='delimiter'> 
+        <Form.Item >
+        <Title level={5}>Setați alarmă</Title>
+        <Switch />
+        </Form.Item>
+       </div>
+       <br/>
+        <Form.Item>
+          <Button shape="round" type="primary" htmlType="submit">
+            Salvează
+          </Button>
+        </Form.Item>
+      </Form>
+    </Modal>
+
     </ConfigProvider>
 
 

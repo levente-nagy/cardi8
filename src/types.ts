@@ -27,5 +27,13 @@ export interface Item {
   istoric: string; 
   alergii: string; 
   consultatii: string; 
-  
+  puls: number;
+  puls_min: number;
+  puls_max: number;
+  temp: number;
+  temp_min: number;
+  temp_max: number;
+  umid: number;
+  umid_min: number;
+  umid_max: number;
 }
