@@ -114,18 +114,19 @@ const Tabel_pacienti: React.FC = () => {
     if (record) {
       const [nume, prenume] = record.nume_prenume.split(' ');
  
-      const [profesie, locDeMunca] = record.profesie.split(',');
+      const [profesie, locDeMunca] = record.profesie.split(', ');
   
-      let [strada, numar, bloc, etaj, apartament, codPostal, oras, judet] = record.adresa.split(', ');
-  
-      numar = numar.replace('Nr. ', '');
-      bloc = bloc ? bloc.replace('Bl. ', '') : '';
-      etaj = etaj ? etaj.replace('Et. ', '') : '';
-      apartament = apartament ? apartament.replace('Ap. ', '') : '';
-      codPostal = codPostal.replace('Cod poștal: ', '');
-      oras = oras.replace('Loc. ', '');
-      judet = judet.replace('Jud. ', '');
-  
+      let adresaParts = record.adresa ? record.adresa.split(', ') : [];
+
+      let strada = adresaParts[0] || '';
+      let numar = adresaParts[1] && adresaParts[1].includes('Nr. ') ? adresaParts[1].replace('Nr. ', '') : '';
+      let bloc = adresaParts.find(part => part.includes('Bl. ')) ? adresaParts.find(part => part.includes('Bl. '))!.replace('Bl. ', '') : '';
+      let etaj = adresaParts.find(part => part.includes('Et. ')) ? adresaParts.find(part => part.includes('Et. '))!.replace('Et. ', '') : '';
+      let apartament = adresaParts.find(part => part.includes('Ap. ')) ? adresaParts.find(part => part.includes('Ap. '))!.replace('Ap. ', '') : '';
+      
+      let codPostal = adresaParts.find(part => part.includes('Cod poștal: ')) ? adresaParts.find(part => part.includes('Cod poștal: '))!.replace('Cod poștal: ', '') : '';
+      let oras = adresaParts.find(part => part.includes('Loc. ')) ? adresaParts.find(part => part.includes('Loc. '))!.replace('Loc. ', '') : '';
+      let judet = adresaParts.find(part => part.includes('Jud. ')) ? adresaParts.find(part => part.includes('Jud. '))!.replace('Jud. ', '') : '';
       const initialValues = {
         nume,
         prenume,
