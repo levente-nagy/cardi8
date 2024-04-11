@@ -5,6 +5,7 @@ import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, Input
 import { EditFilled, DeleteFilled, EyeFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -17,7 +18,8 @@ const Tabel_pacienti: React.FC = () => {
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [form] = Form.useForm();
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
-
+  const navigate = useNavigate();
+  
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
     { title: 'Nume', dataIndex: 'nume_prenume', render: (_text: string, record: Item) => (
@@ -334,6 +336,11 @@ const Tabel_pacienti: React.FC = () => {
           },
         }}
       >
+          <div className='back_button'>
+          <Button shape="round" type="primary" htmlType="submit" onClick={() => navigate('/home')}>
+          Deconectare
+          </Button>
+          </div>
         <div className='header_fisa'>
   <img src="/banner_brand.png" className='banner_brand' />
   </div>
@@ -517,7 +524,7 @@ const Tabel_pacienti: React.FC = () => {
          footer={null} >  
         
         <Title level={5}>Tip</Title>
-         <Form.Item   name="tip">
+         <Form.Item   name="titlu">
          <Input style={{ width: 200 }}/>
         </Form.Item>
         <Title level={5}>Durată zilnică</Title>

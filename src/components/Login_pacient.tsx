@@ -40,6 +40,11 @@ const Login_pacient: React.FC = () => {
           },
         }}
       >
+            <div className='back_button'>
+          <Button shape="round" type="primary" htmlType="submit" onClick={() => navigate('/home')}>
+          Înapoi
+          </Button>
+        </div>
         <Flex gap="middle" align="center" justify="center" vertical style={{ width: '100%' }}>
             <img src="/banner_pacient.png" className='banner' />
             <Form

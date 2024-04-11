@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Descriptions, Avatar } from 'antd';
+import { Typography, Descriptions, Avatar, Button, ConfigProvider } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
 import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection  } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 
 const { Title } = Typography;
@@ -10,7 +11,7 @@ const { Title } = Typography;
 const UserProfilePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [medicName, setMedicName] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchUserData = async () => {
@@ -163,7 +164,21 @@ const UserProfilePage: React.FC = () => {
   ];
 
   return (
+    <ConfigProvider
+    theme={{
+      token: {
+        colorPrimary: "#d80242",
+        colorInfo: "#d80242"
+        
+      },
+    }}
+  >
     <div>
+      <div className='back_button'>
+          <Button shape="round" type="primary" htmlType="submit" onClick={() => navigate('/home')}>
+          Deconectare
+          </Button>
+          </div>
       <div className='header_fisa'>
         <img src="/banner_brand.png" className='banner_brand' alt="Brand Banner" />
         <div className='fisa_pacient'>
@@ -186,6 +201,7 @@ const UserProfilePage: React.FC = () => {
         </Descriptions>
       </div>
     </div>
+    </ConfigProvider>
   );
 };
 

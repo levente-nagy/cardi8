@@ -63,3 +63,8 @@ h5, h4{
   border-radius: 8px;
   padding: 0.8rem;
 }
+
+.back_button{
+  text-align: right;
+  margin: 0.8rem;
+}

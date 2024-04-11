@@ -18,8 +18,7 @@ export interface Item {
   codPostal: number; 
   judet: string; 
   oras: string; 
-  contact: string;
-  telefon: number;
+  telefon: string;
   email: string;
   profesie: string;
   locDeMunca: string;
@@ -36,4 +35,11 @@ export interface Item {
   umid: number;
   umid_min: number;
   umid_max: number;
+  ecg: string;
+  titlu: string;
+  durata: string;
+  altele: string;
+  tip_alarma: string;
+  descriere: string;
+  comentariu: string;
 }
