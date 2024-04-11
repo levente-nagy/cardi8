@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Descriptions, Avatar, Button, ConfigProvider } from 'antd';
+import { Typography, Descriptions, Avatar, Button, ConfigProvider, Space } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
 import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection  } from 'firebase/firestore';
@@ -183,10 +183,13 @@ const UserProfilePage: React.FC = () => {
         <img src="/banner_brand.png" className='banner_brand' alt="Brand Banner" />
         <div className='fisa_pacient'>
           <Avatar size={64} icon={<UserOutlined />} className='avatar' />
-          <Title level={3}>Profil Medical</Title>
+          <Title level={3}>Profil Medical<br/></Title>
         </div>
       </div>
       <div className='fisa'>
+        <Space direction="vertical" size={10} >
+         
+    
         <Title level={4}>Date personale</Title>
         <Descriptions bordered>
           {demographicItems.map(item => (
@@ -199,6 +202,7 @@ const UserProfilePage: React.FC = () => {
             <Descriptions.Item key={item.key} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
           ))}
         </Descriptions>
+        </Space>
       </div>
     </div>
     </ConfigProvider>
