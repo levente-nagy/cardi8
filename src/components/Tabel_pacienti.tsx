@@ -454,7 +454,7 @@ const Tabel_pacienti: React.FC = () => {
 
     
       <Form.Item>
-        <Button shape="round" type="primary" htmlType="submit"  onClick={handleOk} >
+        <Button className="salvare_pacient" shape="round" type="primary" htmlType="submit"  onClick={handleOk} >
           Salvează
         </Button>
       </Form.Item>
