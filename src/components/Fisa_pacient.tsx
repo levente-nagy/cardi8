@@ -14,33 +14,37 @@ const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userId = user.uid;
-          const userRef: DocumentReference<DocumentData> = doc(db, "pacienti", userId);
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setUserData(userData);
-
-            if (userData.medic_id) {
-              const medicName = await fetchMedicName(userData.medic_id);
-              setMedicName(medicName);
-            }
-          } else {
-            console.log('No such document for user:', userId);
-          }
-        } else {
-          console.log('No user logged in');
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        fetchUserData(user.uid);
+      } else {
+        console.log('No user logged in');
       }
-    };
-    fetchUserData();
+    });
+  
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
+  
+  const fetchUserData = async (userId: string) => {
+    try {
+      const userRef: DocumentReference<DocumentData> = doc(db, "pacienti", userId);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserData(userData);
+  
+        if (userData.medic_id) {
+          const medicName = await fetchMedicName(userData.medic_id);
+          setMedicName(medicName);
+        }
+      } else {
+        console.log('No such document for user:', userId);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
 
   const fetchMedicName = async (medicId: string) => {
     try {
