@@ -21,7 +21,7 @@ const Tabel_pacienti: React.FC = () => {
   const navigate = useNavigate();
   
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
+    
     { title: 'Nume', dataIndex: 'nume_prenume', render: (_text: string, record: Item) => (
       <span>{record.nume_prenume}</span>
     )},
@@ -508,12 +508,16 @@ const Tabel_pacienti: React.FC = () => {
         <br/>
         <div className='delimiter'>  
         <Title level={4}>ECG:</Title>
-        <div>Afisam ceva aici</div>
+        <div>Grafic ECG</div>
         </div>  
         <br/>
         <div className='delimiter'>
         <Title level={4}>Recomandări:</Title>
-        <div>Afisam recomandarile aici, pe rand</div>  
+        <div>Recomandari anterioare:<br/>
+          1. ...<br/>
+          2. ...<br/>
+          3. ...<br/>
+          </div>  
         <br/>
         <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showRecomandari(null)}} >
             Adaugă
