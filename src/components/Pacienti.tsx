@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 
-const Tabel_pacienti: React.FC = () => {
+const Pacienti: React.FC = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModulInteligentVisible, setModulInteligentVisible] = useState(false);
@@ -571,7 +571,7 @@ const Tabel_pacienti: React.FC = () => {
   );
 };
 
-export default Tabel_pacienti;
+export default Pacienti;
 
 
 
