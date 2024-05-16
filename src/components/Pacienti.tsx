@@ -19,7 +19,9 @@ const Pacienti: React.FC = () => {
   const [isViewVisible, setIsViewVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
-  const [form] = Form.useForm();
+  const [formDatePacient] = Form.useForm();
+  const [formRecomandari] = Form.useForm();
+  const [formAlarme] = Form.useForm();
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<Item | null>(null);
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
@@ -259,9 +261,9 @@ const Pacienti: React.FC = () => {
         alergii: record.alergii,
         consultatii: record.consultatii
       };
-        form.setFieldsValue(initialValues);
+      formDatePacient.setFieldsValue(initialValues);
     } else {
-      form.resetFields();
+      formDatePacient.resetFields();
     }
     setIsModalVisible(true);
   };
@@ -311,10 +313,11 @@ const Pacienti: React.FC = () => {
 
 
   const handleOk = async () => {
-    form.validateFields().then(async (values) => {
+    formDatePacient.validateFields().then(async (values) => {
       console.log("Submitted values:", values);
+
       const processedValues: Partial<Item> = { ...values };
-  
+
       const numePrenume = `${values.nume} ${values.prenume}`;
       processedValues.nume_prenume = numePrenume;
       delete processedValues.nume;
@@ -354,7 +357,7 @@ const Pacienti: React.FC = () => {
   
       setIsModalVisible(false);
       setEditing(null);
-      form.resetFields();
+      formDatePacient.resetFields();
   
       const data = await getDocs(collection(db, "pacienti"));
       const filteredData = data.docs
@@ -391,10 +394,8 @@ const Pacienti: React.FC = () => {
 
 
   const handleSalveazaRecomandari = async () => {
-    form.validateFields().then(async (values) => {
-      console.log(values.titlu);
-      console.log(values.durata);
-      console.log(values.altele);
+    formRecomandari.validateFields().then(async (values) => {
+
       if (!selectedPatient) {
         console.error("No patient selected.");
         return;
@@ -421,12 +422,11 @@ const Pacienti: React.FC = () => {
           }
         };
         
-        // Update the document with the new recommendations
         await updateDoc(patientDocRef, updatedValues);
   
         console.log("Recomandari added successfully.");
         setAdaugaRecomandariVisible(false);
-        form.resetFields();
+        formRecomandari.resetFields();
       } catch (error) {
         console.error("Error adding recomandari:", error);
       }
@@ -489,7 +489,7 @@ const Pacienti: React.FC = () => {
     if (record) {
       
     } else {
-      form.resetFields();
+      formAlarme.resetFields();
     }
     setAlarmeVisible(true);
   };
@@ -502,7 +502,7 @@ const Pacienti: React.FC = () => {
   };
 
   const showAdaugareRecomandari = () => {
-    form.resetFields();
+    formRecomandari.resetFields();
     setAdaugaRecomandariVisible(true);
   };
       
@@ -539,25 +539,25 @@ const Pacienti: React.FC = () => {
         onCancel={handleCancel}
         footer={null} 
     >
-<Form form={form} layout="vertical"  autoComplete='off'>
+<Form form={formDatePacient} layout="vertical"  autoComplete='off'>
     
     <Title level={5}>Date personale</Title>
  
 
     <Space direction="horizontal" size={15}>
-      <Form.Item label="Nume" name="nume"  rules={[{ required: true, message: 'Vă rog să introduceți numele.' }]}>
+      <Form.Item label="Nume" name="nume"  rules={[{ required: editing == null, message: 'Vă rog să introduceți numele.' }]}>
         <Input disabled={editing !== null}/>
       </Form.Item>
-      <Form.Item label="Prenume" name="prenume" rules={[{ required: true, message: 'Vă rog să introduceți prenumele.' }]}>
+      <Form.Item label="Prenume" name="prenume" rules={[{ required: editing == null, message: 'Vă rog să introduceți prenumele.' }]}>
         <Input disabled={editing !== null}/>
       </Form.Item>
     </Space>
    
     <Space direction="horizontal" size={15}>
-    <Form.Item label="Vârstă" name="varsta" rules={[{ required: true, message: 'Vă rog să introduceți vârsta.' }]}>
+    <Form.Item label="Vârstă" name="varsta" rules={[{ required: editing == null, message: 'Vă rog să introduceți vârsta.' }]}>
         <InputNumber min={1} max={99} maxLength={2} style={{ width: 60 }} disabled={editing !== null}/>
     </Form.Item>
-    <Form.Item label="CNP" name="CNP" rules={[{ required: true, message: 'Vă rog să introduceți CNP.' }]}>
+    <Form.Item label="CNP" name="CNP" rules={[{ required: editing == null, message: 'Vă rog să introduceți CNP.' }]}>
         <InputNumber maxLength={13} style={{ width: 150 }} disabled={editing !== null}/>
       </Form.Item>
       </Space>
@@ -606,7 +606,7 @@ const Pacienti: React.FC = () => {
         message: 'Vă rog să introduceți o adresă de email validă.',
       },
       {
-        required: true,
+        required: editing == null,
         message: 'Vă rog să introduceți adresa de email.',
       },
     ]}>
@@ -657,7 +657,7 @@ const Pacienti: React.FC = () => {
         </div>
         <br/>
        
-        <Form form={form}  autoComplete='off'>
+        <Form form={formAlarme}  autoComplete='off'>
         <div className='delimiter'>
         <Title level={5}>Limite repaus</Title>
         <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
@@ -822,9 +822,9 @@ const Pacienti: React.FC = () => {
          onCancel={handleCancelAdaugaRecomandari}
         
          footer={null} >  
-         <Form form={form}  autoComplete='off'>
+         <Form form={formRecomandari}  autoComplete='off'>
         <Title level={5}>Titlu</Title>
-         <Form.Item  name="titlu" rules={[{ required: true, message: 'Vă rog să introduceți titlul.' }]}>
+         <Form.Item name="titlu" rules={[{ required: true, message: 'Vă rog să introduceți titlul.' }]}>
          <Input style={{ width: 200 }}/>
         </Form.Item>
         <Title level={5}>Descriere</Title>

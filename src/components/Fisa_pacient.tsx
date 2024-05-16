@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Typography, Descriptions, Avatar, Button, ConfigProvider, Space } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
-import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection  } from 'firebase/firestore';
+import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection, onSnapshot  } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -11,6 +11,7 @@ const { Title } = Typography;
 const UserProfilePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [medicName, setMedicName] = useState<string | null>(null);
+  const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -26,6 +27,25 @@ const UserProfilePage: React.FC = () => {
     return () => unsubscribe();
   }, []);
   
+    
+  const fetchUltimeleRecomandari = (userId: string) => {
+    const patientDocRef = doc(db, 'pacienti', userId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.recomandari) {
+        const recommendationsArray = Object.values(patientData.recomandari);
+        const ultimeleRecomandari = recommendationsArray.slice(-5); 
+        setUltimeleRecomandari(ultimeleRecomandari);
+      } else {
+        setUltimeleRecomandari([]);
+      }
+    }, (error) => {
+      console.error('Error fetching recommendations:', error);
+      setUltimeleRecomandari([]);
+    });
+  };
+  
   const fetchUserData = async (userId: string) => {
     try {
       const userRef: DocumentReference<DocumentData> = doc(db, "pacienti", userId);
@@ -33,6 +53,7 @@ const UserProfilePage: React.FC = () => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         setUserData(userData);
+        fetchUltimeleRecomandari(userId);
   
         if (userData.medic_id) {
           const medicName = await fetchMedicName(userData.medic_id);
@@ -86,85 +107,77 @@ const UserProfilePage: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  const userId = auth.currentUser?.uid;
+
+
+ 
 
   const demographicItems = [
+
     {
-      key: '1',
-      label: 'ID Pacient',
-      children: userId,
-      span: 3,
-    },
-    {
-      key: '2',
+      
       label: 'Nume',
       children: userData.nume_prenume,
+      
     },
     {
-      key: '3',
+ 
       label: 'Vârstă',
       children: userData.varsta,
+      span: 2,
     },
     {
-      key: '4',
+     
       label: 'CNP',
       children: userData.CNP,
+      
     },
     {
-      key: '5',
+     
       label: 'Adresă',
       children: userData.adresa,
+      span: 2,
+      
     },
     {
-      key: '6',
+     
       label: 'Contact',
       children: `Telefon: ${userData.telefon}, Email: ${userData.email}`,
-      span: 3,
+      
     },
     {
-      key: '7',
+     
       label: 'Profesie',
       children: userData.profesie,
+      span: 2,
     },
   ];
 
   const medicalItems = [
     {
-      key: '1',
+      
       label: 'Medic',
       children: medicName,
-      span: 3,
+      
     },
     {
-      key: '2',
+      
       label: 'Istoric Medical',
       children: userData.istoric,
-      span: 3,
+      span: 2,
     },
     {
-      key: '3',
+      
       label: 'Alergii',
       children: userData.alergii,
-      span: 3,
+      
     },
     {
-      key: '4',
+      
       label: 'Consultaţii Cardiologice',
       children: userData.consultatii,
-      span: 3,
+      span: 2,
     },
-    {
-      key: '5',
-      label: 'Recomandări',
-      children: (
-        <ul>
-          <li>Tipul: Alergat</li>
-          <li>Durata zilnică: 30 minute</li>
-          <li>Alte Indicaţii: Evitați efortul intens în timpul zilelor caniculare.</li>
-        </ul>
-      ),
-      span: 3,
-    },
+ 
   ];
 
   return (
@@ -187,7 +200,7 @@ const UserProfilePage: React.FC = () => {
         <img src="/banner_brand.png" className='banner_brand' alt="Brand Banner" />
         <div className='fisa_pacient'>
           <Avatar size={64} icon={<UserOutlined />} className='avatar' />
-          <Title level={3}>Profil Medical<br/></Title>
+          <Title level={3}>Profil medical<br/></Title>
         </div>
       </div>
       <div className='fisa'>
@@ -197,17 +210,41 @@ const UserProfilePage: React.FC = () => {
         <Title level={4}>Date personale</Title>
         <Descriptions bordered>
           {demographicItems.map(item => (
-            <Descriptions.Item key={item.key} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
+            <Descriptions.Item labelStyle={{width: '20%'}} contentStyle={{width: '20%'}} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
           ))}
         </Descriptions>
         <Title level={4}>Detalii medicale</Title>
         <Descriptions bordered>
           {medicalItems.map(item => (
-            <Descriptions.Item key={item.key} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
+            <Descriptions.Item  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
           ))}
         </Descriptions>
+
+        <div>
+        <Title level={4}>Recomandări</Title>
+
+  {ultimeleRecomandari.length === 0 ?  (
+    <p>Nu există recomandări anterioare.</p>
+  ) : ( 
+    ultimeleRecomandari.map((recommendation, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Titlu"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{recommendation.titlu}</Descriptions.Item>
+  <Descriptions.Item label="Descriere" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{recommendation.descriere}</Descriptions.Item>
+  <Descriptions.Item label="Observații"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{recommendation.observatii}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{recommendation.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+</div>
+
+
         </Space>
       </div>
+      
     </div>
     </ConfigProvider>
   );

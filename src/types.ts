@@ -48,9 +48,8 @@ export interface Item {
 
   ecg: string;
   titlu: string;
-  durata: string;
-  altele: string;
-  tip_alarma: string;
   descriere: string;
+  observatii: string;
+  tip_alarma: string;
   comentariu: string;
 }
