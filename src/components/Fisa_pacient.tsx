@@ -224,7 +224,7 @@ const UserProfilePage: React.FC = () => {
         <Title level={4}>Recomandări</Title>
 
   {ultimeleRecomandari.length === 0 ?  (
-    <p>Nu există recomandări anterioare.</p>
+    <Title level={5}>Nu există recomandări anterioare.</Title>
   ) : ( 
     ultimeleRecomandari.map((recommendation, index) => (
       

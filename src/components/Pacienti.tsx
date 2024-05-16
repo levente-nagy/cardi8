@@ -6,6 +6,7 @@ import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled}
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
 
 
 
@@ -196,28 +197,41 @@ const Pacienti: React.FC = () => {
   
 
   useEffect(() => {
-    const medic_id = getCurrentUser();
-    setLoggedInUserId(medic_id);
-    const getPatients = async () => {
-      if (medic_id) {
-        const medicDocRef = doc(db, "medici", medic_id);
-        const unsubscribe = onSnapshot(medicDocRef, async (docSnapshot) => {
-          if (docSnapshot.exists()) {
-            const pacientiArray = docSnapshot.data().pacienti || [];
-            const patientsPromises = pacientiArray.map(async (patientId: string) => {
-              const patientDocSnapshot = await getDoc(doc(db, "pacienti", patientId));
-              return { ...patientDocSnapshot.data(), id: patientDocSnapshot.id } as Item;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const medic_id = user.uid;
+        console.log('medic_id:', medic_id); // Check the value of medic_id
+        setLoggedInUserId(medic_id);
+        const getPatients = async () => {
+          try {
+            const medicDocRef = doc(db, "medici", medic_id);
+            const unsubscribeSnapshot = onSnapshot(medicDocRef, async (docSnapshot) => {
+              console.log('docSnapshot.exists():', docSnapshot.exists()); // Check if the medic document exists
+              if (docSnapshot.exists()) {
+                const pacientiArray = docSnapshot.data().pacienti || [];
+                console.log('pacientiArray:', pacientiArray); // Check the value of pacientiArray
+                const patientsPromises = pacientiArray.map(async (patientId: string) => {
+                  const patientDocSnapshot = await getDoc(doc(db, "pacienti", patientId));
+                  return { ...patientDocSnapshot.data(), id: patientDocSnapshot.id } as Item;
+                });
+                const patients = await Promise.all(patientsPromises);
+                console.log('patients:', patients); // Check the value of patients
+                setDataSource(patients);
+              } else {
+                setDataSource([]);
+              }
             });
-            const patients = await Promise.all(patientsPromises);
-            setDataSource(patients);
-          } else {
-            setDataSource([]);
+            return () => unsubscribeSnapshot();
+          } catch (error) {
+            console.error("Error fetching patients:", error);
           }
-        });
-        return () => unsubscribe();
+        };
+        getPatients();
       }
-    };
-    getPatients();
+    });
+  
+    // Clean up the listener when the component is unmounted
+    return () => unsubscribe();
   }, []);
 
 
