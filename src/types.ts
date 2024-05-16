@@ -1,4 +1,5 @@
 export interface Item {
+  recomandari: never[];
   medic_id: string;
   uid: string;
   key: React.Key;
@@ -27,14 +28,24 @@ export interface Item {
   alergii: string; 
   consultatii: string; 
   puls: number;
-  puls_min: number;
-  puls_max: number;
   temp: number;
-  temp_min: number;
-  temp_max: number;
   umid: number;
-  umid_min: number;
-  umid_max: number;
+
+  puls_min_repaus: number;
+  puls_max_repaus: number;
+  temp_min_repaus: number;
+  temp_max_repaus: number;
+  umid_min_repaus: number;
+  umid_max_repaus: number;
+
+  puls_min_miscare: number;
+  puls_max_miscare: number;
+  temp_min_miscare: number;
+  temp_max_miscare: number;
+  umid_min_miscare: number;
+  umid_max_miscare: number;
+
+
   ecg: string;
   titlu: string;
   durata: string;

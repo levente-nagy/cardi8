@@ -1,23 +1,28 @@
 import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
-import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm, Descriptions, DescriptionsProps } from 'antd';
-import { EditFilled, DeleteFilled, EyeFilled} from '@ant-design/icons';
+import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm, Descriptions, DescriptionsProps, Badge, Flex, Row, Col } from 'antd';
+import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
 import { useNavigate } from 'react-router-dom';
 
 
 
+
 const Pacienti: React.FC = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModulInteligentVisible, setModulInteligentVisible] = useState(false);
+  const [isAlarmeVisible, setAlarmeVisible] = useState(false);
   const [isRecomandariVisible, setRecomandariVisible] = useState(false);
+  const [isAdaugaRecomandariVisible, setAdaugaRecomandariVisible] = useState(false);
+  const [isViewVisible, setIsViewVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [form] = Form.useForm();
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Item | null>(null);
+  const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const navigate = useNavigate();
   
   const columns = [
@@ -26,10 +31,7 @@ const Pacienti: React.FC = () => {
       <span>{record.nume_prenume}</span>
     )},
     { title: 'Vârstă', dataIndex: 'varsta' },
-    { title: 'CNP', dataIndex: 'CNP' },
-    { title: 'Adresă', dataIndex: 'adresa', render: (_text: string, record: Item) => (
-      <span>{record.adresa}</span>
-    )},
+
     { title: 'Profesie', dataIndex: 'profesie', render: (_text: string, record: Item) => (
       <span>{record.profesie}</span>
     )},
@@ -42,28 +44,54 @@ const Pacienti: React.FC = () => {
     )},
 
     {
-      title: 'Date modul\ninteligent',
-      key: 'modul_inteligent',
+      title: 'Recomandări',
+      key: 'recomandari',
       width: 80,
+     
       render: (record: Item) => (
-        <Button shape="round" className="view_button" onClick={() =>{ showModulInteligent(record);}}>
-          <EyeFilled />
+        <Flex gap="small" vertical justify="center" align='center'>
+       <Button shape="round" className="view_button" style={{ verticalAlign: "baseline" }} onClick={() =>{ showRecomandari(); handleSelectPatient(record); }}>
+          <UnorderedListOutlined /> 
         </Button>
+        </Flex>
+       
           
       ),
     },
-    {
-      title: '',
-      key: 'actions',
-      render: (record: Item) => (
 
-        <Space  direction="vertical">
+    {
+      title: 'Alarme',
+      key: 'modul_inteligent',
+      width: 80,
+      
+      render: (record: Item) => (
+        <Flex gap="small" vertical justify="center" align='center'>
+        <Badge count={5}>
+        <Button shape="round" className="view_button" onClick={() =>{ showAlarme(record);}}>
+        <BellFilled />
+        </Button>
+        </Badge>
+        </Flex>
+      ),
+    },
+    {
+      title: 'Gestionare pacient',
+      key: 'actions',
+      width: 80,
+      
+      render: (record: Item) => (
+       <Flex gap="small" vertical justify="center" align='center'>
+        <Space direction="vertical">
+        <Button shape="round" className="view_button" onClick={() =>{setSelectedPatient(record);
+              setIsViewVisible(true);}}>
+          <EyeFilled />
+        </Button>
           <Button shape="round" onClick={() =>{ showModal(record);  setEditing(record);}} className='action_button' ><EditFilled /></Button>
           <Popconfirm title="Sunteţi sigur că vreţi să ştergeţi acest pacient?" onConfirm={() => handleDelete(record.id)} okText="Da" cancelText="Nu">
             <Button shape="round"  className='action_button' ><DeleteFilled /></Button>
             </Popconfirm>
         </Space>
-
+       </Flex>
       ),
     },
  
@@ -87,6 +115,72 @@ const Pacienti: React.FC = () => {
       key: '3',
       label: 'Umiditate',
       children: 'N/A',
+      span: 3,
+    },
+  ];
+
+  const items: DescriptionsProps['items'] = [
+    {
+      
+      label: 'Nume',
+      children: <p>{selectedPatient?.nume_prenume}</p>,
+      span: 3,
+    },
+    {
+      
+      label: 'Vârstă',
+      children: <p>{selectedPatient?.varsta}</p>,
+      span: 3,
+    },
+    {
+      
+      label: 'CNP',
+      children: <p>{selectedPatient?.CNP}</p>,
+      span: 3,
+    },
+    {
+  
+      label: 'Adresă',
+      children: (
+        <p>
+          {selectedPatient?.adresa}
+          
+        </p>
+      ),
+      span: 3,
+    },
+    {
+     
+      label: 'Contact',
+      children: (
+        <p>
+          Telefon: {selectedPatient?.telefon}
+          <br />
+          Email: {selectedPatient?.email}
+        </p>
+      ),
+      span: 3,
+    },
+    {
+   
+      label: 'Profesie',
+      children: <p>{selectedPatient?.profesie}</p>,
+      span: 3,
+    },
+    
+    
+    {
+     
+      label: 'Detalii medicale',
+      children: (
+        <p>
+          Istoric medical: {selectedPatient?.istoric}
+          <br />
+          Alergii: {selectedPatient?.alergii}
+          <br />
+          Consultații cardiologice: {selectedPatient?.consultatii}
+        </p>
+      ),
       span: 3,
     },
   ];
@@ -272,6 +366,82 @@ const Pacienti: React.FC = () => {
   };
 
 
+  const handleSelectPatient = (patient: Item) => {
+    fetchUltimeleRecomandari(patient.id);
+    setSelectedPatient(patient);
+  };
+
+  const fetchUltimeleRecomandari = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.recomandari) {
+        const recommendationsArray = Object.values(patientData.recomandari);
+        const ultimeleRecomandari = recommendationsArray.slice(-5); 
+        setUltimeleRecomandari(ultimeleRecomandari);
+      } else {
+        setUltimeleRecomandari([]);
+      }
+    }, (error) => {
+      console.error('Error fetching recommendations:', error);
+      setUltimeleRecomandari([]);
+    });
+  };
+
+
+  const handleSalveazaRecomandari = async () => {
+    form.validateFields().then(async (values) => {
+      console.log(values.titlu);
+      console.log(values.durata);
+      console.log(values.altele);
+      if (!selectedPatient) {
+        console.error("No patient selected.");
+        return;
+      }
+  
+      try {
+        const now = new Date();
+        const time_stamp = `${now.getDate().toString().padStart(2, '0')}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getFullYear()} - ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const patientDocRef = doc(db, "pacienti", selectedPatient.id);
+        const patientSnapshot = await getDoc(patientDocRef);
+        const patientData = patientSnapshot.data();
+        const existingRecomandari = patientData?.recomandari || {};
+
+        const nextKey = Object.keys(existingRecomandari).length;
+        const updatedValues = {
+          recomandari: {
+            ...existingRecomandari,
+            [nextKey]: {
+              titlu: values.titlu || "",
+              descriere: values.descriere || "",
+              observatii: values.observatii || "",
+              time_stamp: time_stamp
+            }
+          }
+        };
+        
+        // Update the document with the new recommendations
+        await updateDoc(patientDocRef, updatedValues);
+  
+        console.log("Recomandari added successfully.");
+        setAdaugaRecomandariVisible(false);
+        form.resetFields();
+      } catch (error) {
+        console.error("Error adding recomandari:", error);
+      }
+    });
+};
+
+
+  
+  
+  
+  
+  
+  
+
+
 
   const handleDelete = async (id: string) => {
     try {
@@ -298,31 +468,42 @@ const Pacienti: React.FC = () => {
     
   };
 
-  const handleCancelModul = () => {
-    setModulInteligentVisible(false);
+  const handleCancelAlarme = () => {
+    setAlarmeVisible(false);
+  };
+
+  const handleCancelView = () => {
+    setIsViewVisible(false);
   };
 
   const handleCancelRecomandari = () => {
     setRecomandariVisible(false);
   };
 
-
-  const showModulInteligent = (record: Item | null) => {
-    if (record) {
-      
-    } else {
-      form.resetFields();
-    }
-    setModulInteligentVisible(true);
+  const handleCancelAdaugaRecomandari = () => {
+    setAdaugaRecomandariVisible(false);
   };
 
-  const showRecomandari = (record: Item | null) => {
+
+  const showAlarme = (record: Item | null) => {
     if (record) {
       
     } else {
       form.resetFields();
     }
+    setAlarmeVisible(true);
+  };
+
+
+  
+
+  const showRecomandari  = () => {
     setRecomandariVisible(true);
+  };
+
+  const showAdaugareRecomandari = () => {
+    form.resetFields();
+    setAdaugaRecomandariVisible(true);
   };
       
   return (
@@ -349,7 +530,7 @@ const Pacienti: React.FC = () => {
       </Button>
       <br/><br/>
 
-        <Table columns={columns} dataSource={dataSource} size="small" pagination={{ hideOnSinglePage: true }} rowKey="id"/>
+        <Table columns={columns} dataSource={dataSource} size="small" pagination={{ hideOnSinglePage: true }} rowKey="id" />
        
     <Modal
         title={editing ? 'Editare fişă pacient' : 'Adăugare pacient'}
@@ -365,19 +546,19 @@ const Pacienti: React.FC = () => {
 
     <Space direction="horizontal" size={15}>
       <Form.Item label="Nume" name="nume"  rules={[{ required: true, message: 'Vă rog să introduceți numele.' }]}>
-        <Input/>
+        <Input disabled={editing !== null}/>
       </Form.Item>
       <Form.Item label="Prenume" name="prenume" rules={[{ required: true, message: 'Vă rog să introduceți prenumele.' }]}>
-        <Input/>
+        <Input disabled={editing !== null}/>
       </Form.Item>
     </Space>
    
     <Space direction="horizontal" size={15}>
     <Form.Item label="Vârstă" name="varsta" rules={[{ required: true, message: 'Vă rog să introduceți vârsta.' }]}>
-        <InputNumber min={1} max={99} maxLength={2} style={{ width: 60 }}/>
+        <InputNumber min={1} max={99} maxLength={2} style={{ width: 60 }} disabled={editing !== null}/>
     </Form.Item>
     <Form.Item label="CNP" name="CNP" rules={[{ required: true, message: 'Vă rog să introduceți CNP.' }]}>
-        <InputNumber maxLength={13} style={{ width: 150 }}/>
+        <InputNumber maxLength={13} style={{ width: 150 }} disabled={editing !== null}/>
       </Form.Item>
       </Space>
       <Title level={5}>Adresă</Title>
@@ -429,7 +610,7 @@ const Pacienti: React.FC = () => {
         message: 'Vă rog să introduceți adresa de email.',
       },
     ]}>
-        <Input style={{ width: 250 }}/>
+        <Input style={{ width: 250 }} disabled={editing !== null}/>
       </Form.Item>
       </Space>
       <Space direction="horizontal" size={15}>
@@ -461,92 +642,125 @@ const Pacienti: React.FC = () => {
       
     </Form>
     </Modal>
-    <Modal title="Date modul inteligent"
-    open={isModulInteligentVisible} 
-    okText="Salvează"
-     
-        onCancel={handleCancelModul}
-        footer={null} 
+
+
+    <Modal title="Alarme"
+     open={isAlarmeVisible} 
+     okText="Salvează"
+     onCancel={handleCancelAlarme}
+     footer={null} 
     >
-    <Title level={4}>Valori citite:</Title>
+   
+      <div className='delimiter'>
+        <Title level={5}>Măsuratori:</Title>
         <Descriptions bordered items={ValorileActualeModul} size="small" />
+        </div>
         <br/>
        
-       <Form form={form}  autoComplete='off'>
-       <div className='delimiter'>
-       <Title level={4}>Limite:</Title>
-       <Title level={5}>Puls</Title>
-       <Space direction="horizontal" size={15}>
-        <Form.Item label="Minim" name="puls_min">
+        <Form form={form}  autoComplete='off'>
+        <div className='delimiter'>
+        <Title level={5}>Limite repaus</Title>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Puls:</Title>
+        </Col>
+        <Col className="gutter-row" >
+        <Form.Item label="Minim" name="puls_min_repaus">
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        <Form.Item label="Maxim" name="puls_max" >
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="puls_max_repaus" >
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        </Space>
-
-       <Title level={5}>Temperatură</Title>
-       <Space direction="horizontal" size={15}>
-        <Form.Item label="Minim" name="temp_min">
+        </Col>
+        </Row>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Temperatură:</Title>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Minim" name="temp_min_repaus">
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        <Form.Item label="Maxim" name="temp_max" >
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="temp_max_repaus" >
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        </Space>
-       
-        <Title level={5}>Umiditate</Title>
-       <Space direction="horizontal" size={15}>
-        <Form.Item label="Minim" name="umid_min">
+        </Col>
+        </Row>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Umiditate:</Title>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Minim" name="umid_min_repaus">
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        <Form.Item label="Maxim" name="umid_max" >
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="umid_max_repaus" >
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
-        </Space>
+        </Col>
+        </Row>
+        </div>  
+        <br/>
+        <div className='delimiter'>
+        <Title level={5}>Limite mișcare</Title>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Puls:</Title>
+        </Col>
+        <Col className="gutter-row" >
+        <Form.Item label="Minim" name="puls_min_miscare">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="puls_max_miscare" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        </Row>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Temperatură:</Title>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Minim" name="temp_min_miscare">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="temp_max_miscare" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        </Row>
+        <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
+        <Col className="gutter-row" span={7}>
+        <Title level={5}>Umiditate:</Title>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Minim" name="umid_min_miscare">
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        <Col className="gutter-row">
+        <Form.Item label="Maxim" name="umid_max_miscare" >
+        <InputNumber style={{ width: 70 }}/>
+        </Form.Item>
+        </Col>
+        </Row>
         </div>  
         <br/>
         <div className='delimiter'>  
         <Title level={4}>ECG:</Title>
         <div>Grafic ECG</div>
         </div>  
-        <br/>
-        <div className='delimiter'>
-        <Title level={4}>Recomandări:</Title>
-        <div>Recomandari anterioare:<br/>
-          1. ...<br/>
-          2. ...<br/>
-          3. ...<br/>
-          </div>  
-        <br/>
-        <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showRecomandari(null)}} >
-            Adaugă
-        </Button>  
-        <Modal title="Recomandări" open={isRecomandariVisible} 
-         okText="Salvează"
-         onCancel={handleCancelRecomandari}
-         footer={null} >  
-        
-        <Title level={5}>Tip</Title>
-         <Form.Item   name="titlu">
-         <Input style={{ width: 200 }}/>
-        </Form.Item>
-        <Title level={5}>Durată zilnică</Title>
-        <Form.Item   name="durata">
-         <Input style={{ width: 200 }}/>
-        </Form.Item>
-        <Title level={5}>Alte indicaţii</Title>
-        <Form.Item   name="altele">
-         <Input.TextArea/>
-        </Form.Item>
-        <Form.Item>
-          <Button shape="round" type="primary" htmlType="submit">
-            Salvează
-          </Button>
-        </Form.Item>
-         
-        </Modal>
-        </div>
+ 
         <br/>
         <div className='delimiter'> 
         <Form.Item >
@@ -563,6 +777,87 @@ const Pacienti: React.FC = () => {
       </Form>
     </Modal>
 
+    
+        <Modal title=""
+         open={isRecomandariVisible} 
+         okText="Salvează"
+         onCancel={handleCancelRecomandari}
+         footer={null} >
+
+        
+{selectedPatient && (
+    <>
+      <Space direction="vertical" size={15}>
+        
+       
+      <div>
+      Recomandări anterioare pentru pacientul <b>{selectedPatient.nume_prenume}</b>:
+  <br />
+  <br />
+  {ultimeleRecomandari.length === 0 ?  (
+    <p>Nu există recomandări anterioare.</p>
+  ) : ( 
+    ultimeleRecomandari.map((recommendation, index) => (
+      
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Titlu" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{recommendation.titlu}</Descriptions.Item>
+  <Descriptions.Item label="Descriere" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{recommendation.descriere}</Descriptions.Item>
+  <Descriptions.Item label="Observații" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{recommendation.observatii}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{recommendation.time_stamp}</Descriptions.Item>    
+</Descriptions>
+    ))
+  )}
+</div>
+      </Space>
+    </>
+  )}
+  <br/>
+  <br/>
+        <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showAdaugareRecomandari(); }} >
+            Adaugă
+        </Button>  
+
+        <Modal title="Adăugare recomandări" open={isAdaugaRecomandariVisible} 
+         okText="Salvează"
+         onCancel={handleCancelAdaugaRecomandari}
+        
+         footer={null} >  
+         <Form form={form}  autoComplete='off'>
+        <Title level={5}>Titlu</Title>
+         <Form.Item  name="titlu" rules={[{ required: true, message: 'Vă rog să introduceți titlul.' }]}>
+         <Input style={{ width: 200 }}/>
+        </Form.Item>
+        <Title level={5}>Descriere</Title>
+        <Form.Item  name="descriere" rules={[{ required: true, message: 'Vă rog să introduceți descrierea.' }]}>
+         <Input style={{ width: 200 }}/>
+        </Form.Item>
+        <Title level={5}>Observații</Title>
+        <Form.Item name="observatii">
+         <Input.TextArea/>
+        </Form.Item>
+        <Form.Item>
+          <Button shape="round" type="primary" htmlType="submit" onClick={() => { handleSalveazaRecomandari();  }}>
+            Salvează
+          </Button>
+        </Form.Item>
+        </Form>
+        </Modal>
+        </Modal>
+    <Modal
+        title="Detalii pacient"
+        open={isViewVisible}
+        onCancel={handleCancelView}
+        footer={null}
+      >
+        {selectedPatient && (
+          <>
+          <Space direction="vertical" size={15}>
+            <Descriptions items={items} bordered>
+            </Descriptions>
+            </Space>
+            </>
+        )}
+      </Modal>
     </ConfigProvider>
 
 
@@ -572,7 +867,6 @@ const Pacienti: React.FC = () => {
 };
 
 export default Pacienti;
-
 
 
 
