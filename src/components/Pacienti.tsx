@@ -190,11 +190,7 @@ const Pacienti: React.FC = () => {
 
   
 
-  const getCurrentUser = () => {
-    const user = auth.currentUser; 
-    return user ? user.uid : null; 
-  };
-  
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
