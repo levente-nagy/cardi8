@@ -1,7 +1,7 @@
 import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
-import { Table, Button, Space, Modal, ConfigProvider, Switch, Form, Input, InputNumber, Popconfirm, Descriptions, DescriptionsProps, Badge, Flex, Row, Col } from 'antd';
+import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
@@ -14,18 +14,21 @@ import { onAuthStateChanged } from 'firebase/auth';
 const Pacienti: React.FC = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isAlarmeVisible, setAlarmeVisible] = useState(false);
+  const [isMasuratoriVisible, setMasuratoriVisible] = useState(false);
   const [isRecomandariVisible, setRecomandariVisible] = useState(false);
+  const [isAdaugaLimiteVisible, setAdaugaLimiteVisible] = useState(false);
   const [isAdaugaRecomandariVisible, setAdaugaRecomandariVisible] = useState(false);
   const [isViewVisible, setIsViewVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [formDatePacient] = Form.useForm();
   const [formRecomandari] = Form.useForm();
-  const [formAlarme] = Form.useForm();
+  const [formLimite] = Form.useForm();
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<Item | null>(null);
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
+  const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
+
   const navigate = useNavigate();
   
   const columns = [
@@ -63,14 +66,14 @@ const Pacienti: React.FC = () => {
     },
 
     {
-      title: 'Alarme',
-      key: 'modul_inteligent',
+      title: 'Măsuratori',
+      key: 'masuratori',
       width: 80,
       
       render: (record: Item) => (
         <Flex gap="small" vertical justify="center" align='center'>
         <Badge count={5}>
-        <Button shape="round" className="view_button" onClick={() =>{ showAlarme(record);}}>
+        <Button shape="round" className="view_button" onClick={() =>{ showMasuratori(); handleSelectPatient(record);}}>
         <BellFilled />
         </Button>
         </Badge>
@@ -100,118 +103,27 @@ const Pacienti: React.FC = () => {
  
   ];
 
-  const ValorileActualeModul: DescriptionsProps['items'] = [
-
-    {
-      key: '1',
-      label: 'Puls',
-      children: 'N/A',
-      span: 3,
-    },
-    {
-      key: '2',
-      label: 'Temperatură',
-      children: 'N/A',
-      span: 3,
-    },
-    {
-      key: '3',
-      label: 'Umiditate',
-      children: 'N/A',
-      span: 3,
-    },
-  ];
-
-  const items: DescriptionsProps['items'] = [
-    {
-      
-      label: 'Nume',
-      children: <p>{selectedPatient?.nume_prenume}</p>,
-      span: 3,
-    },
-    {
-      
-      label: 'Vârstă',
-      children: <p>{selectedPatient?.varsta}</p>,
-      span: 3,
-    },
-    {
-      
-      label: 'CNP',
-      children: <p>{selectedPatient?.CNP}</p>,
-      span: 3,
-    },
-    {
-  
-      label: 'Adresă',
-      children: (
-        <p>
-          {selectedPatient?.adresa}
-          
-        </p>
-      ),
-      span: 3,
-    },
-    {
-     
-      label: 'Contact',
-      children: (
-        <p>
-          Telefon: {selectedPatient?.telefon}
-          <br />
-          Email: {selectedPatient?.email}
-        </p>
-      ),
-      span: 3,
-    },
-    {
-   
-      label: 'Profesie',
-      children: <p>{selectedPatient?.profesie}</p>,
-      span: 3,
-    },
-    
-    
-    {
-     
-      label: 'Detalii medicale',
-      children: (
-        <p>
-          Istoric medical: {selectedPatient?.istoric}
-          <br />
-          Alergii: {selectedPatient?.alergii}
-          <br />
-          Consultații cardiologice: {selectedPatient?.consultatii}
-        </p>
-      ),
-      span: 3,
-    },
-  ];
-
-  
-
-
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         const medic_id = user.uid;
-        console.log('medic_id:', medic_id); // Check the value of medic_id
+        console.log('medic_id:', medic_id); 
         setLoggedInUserId(medic_id);
         const getPatients = async () => {
           try {
             const medicDocRef = doc(db, "medici", medic_id);
             const unsubscribeSnapshot = onSnapshot(medicDocRef, async (docSnapshot) => {
-              console.log('docSnapshot.exists():', docSnapshot.exists()); // Check if the medic document exists
+              console.log('docSnapshot.exists():', docSnapshot.exists()); 
               if (docSnapshot.exists()) {
                 const pacientiArray = docSnapshot.data().pacienti || [];
-                console.log('pacientiArray:', pacientiArray); // Check the value of pacientiArray
+                console.log('pacientiArray:', pacientiArray); 
                 const patientsPromises = pacientiArray.map(async (patientId: string) => {
                   const patientDocSnapshot = await getDoc(doc(db, "pacienti", patientId));
                   return { ...patientDocSnapshot.data(), id: patientDocSnapshot.id } as Item;
                 });
                 const patients = await Promise.all(patientsPromises);
-                console.log('patients:', patients); // Check the value of patients
+                console.log('patients:', patients);
                 setDataSource(patients);
               } else {
                 setDataSource([]);
@@ -225,8 +137,7 @@ const Pacienti: React.FC = () => {
         getPatients();
       }
     });
-  
-    // Clean up the listener when the component is unmounted
+
     return () => unsubscribe();
   }, []);
 
@@ -381,6 +292,7 @@ const Pacienti: React.FC = () => {
 
   const handleSelectPatient = (patient: Item) => {
     fetchUltimeleRecomandari(patient.id);
+    fetchUltimeleMasuratori(patient.id);
     setSelectedPatient(patient);
   };
 
@@ -402,6 +314,25 @@ const Pacienti: React.FC = () => {
     });
   };
 
+  const fetchUltimeleMasuratori = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.masuratori) {
+        const masuratoriArray = Object.values(patientData.masuratori);
+        const ultimeleMasuratori = masuratoriArray.slice(-5); 
+        setUltimeleMasuratori(ultimeleMasuratori);
+      } else {
+        setUltimeleMasuratori([]);
+      }
+    }, (error) => {
+      console.error('Error fetching masuratori:', error);
+      setUltimeleMasuratori([]);
+    });
+  };
+
+
 
   const handleSalveazaRecomandari = async () => {
     formRecomandari.validateFields().then(async (values) => {
@@ -417,19 +348,19 @@ const Pacienti: React.FC = () => {
         const patientDocRef = doc(db, "pacienti", selectedPatient.id);
         const patientSnapshot = await getDoc(patientDocRef);
         const patientData = patientSnapshot.data();
-        const existingRecomandari = patientData?.recomandari || {};
+        const existingRecomandari = patientData?.recomandari || [];
 
-        const nextKey = Object.keys(existingRecomandari).length;
+        const newRecomandare = {
+          titlu: values.titlu || "",
+          descriere: values.descriere || "",
+          observatii: values.observatii || "",
+          time_stamp: time_stamp
+        };
+
+        existingRecomandari.push(newRecomandare);
+        
         const updatedValues = {
-          recomandari: {
-            ...existingRecomandari,
-            [nextKey]: {
-              titlu: values.titlu || "",
-              descriere: values.descriere || "",
-              observatii: values.observatii || "",
-              time_stamp: time_stamp
-            }
-          }
+          recomandari: existingRecomandari
         };
         
         await updateDoc(patientDocRef, updatedValues);
@@ -442,14 +373,46 @@ const Pacienti: React.FC = () => {
       }
     });
 };
+const handleSalveazaLimite = async () => {
+  formLimite.validateFields().then(async (values) => {
 
+    if (!selectedPatient) {
+      console.error("No patient selected.");
+      return;
+    }
 
-  
-  
-  
-  
-  
-  
+    try {
+      const patientDocRef = doc(db, "pacienti", selectedPatient.id);
+
+      const newLimite = {
+        puls_min_repaus: values.puls_min_repaus || "",
+        puls_max_repaus: values.puls_max_repaus || "",
+        temp_min_repaus: values.temp_min_repaus || "",
+        temp_max_repaus: values.temp_max_repaus || "",
+        umid_min_repaus: values.umid_min_repaus || "",
+        umid_max_repaus: values.umid_max_repaus || "",
+        puls_min_miscare: values.puls_min_miscare || "",
+        puls_max_miscare: values.puls_max_miscare || "",
+        temp_min_miscare: values.temp_min_miscare || "",
+        temp_max_miscare: values.temp_max_miscare || "",
+        umid_min_miscare: values.umid_min_miscare || "",
+        umid_max_miscare: values.umid_max_miscare || "",
+      };
+      
+      const updatedValues = {
+        limite_medic: newLimite
+      };
+      
+      await updateDoc(patientDocRef, updatedValues);
+
+      console.log("Limite added successfully.");
+      setAdaugaLimiteVisible(false);
+      formLimite.resetFields();
+    } catch (error) {
+      console.error("Error adding limite:", error);
+    }
+  });
+};
 
 
 
@@ -478,8 +441,8 @@ const Pacienti: React.FC = () => {
     
   };
 
-  const handleCancelAlarme = () => {
-    setAlarmeVisible(false);
+  const handleCancelMasuratori = () => {
+    setMasuratoriVisible(false);
   };
 
   const handleCancelView = () => {
@@ -494,14 +457,13 @@ const Pacienti: React.FC = () => {
     setAdaugaRecomandariVisible(false);
   };
 
+  const handleCancelAdaugaLimite = () => {
+    setAdaugaLimiteVisible(false);
+  };
 
-  const showAlarme = (record: Item | null) => {
-    if (record) {
-      
-    } else {
-      formAlarme.resetFields();
-    }
-    setAlarmeVisible(true);
+  const showMasuratori = () => {
+
+    setMasuratoriVisible(true);
   };
 
 
@@ -514,6 +476,12 @@ const Pacienti: React.FC = () => {
   const showAdaugareRecomandari = () => {
     formRecomandari.resetFields();
     setAdaugaRecomandariVisible(true);
+  };
+
+
+  const showAdaugareLimite = () => {
+    formLimite.resetFields();
+    setAdaugaLimiteVisible(true);
   };
       
   return (
@@ -654,20 +622,60 @@ const Pacienti: React.FC = () => {
     </Modal>
 
 
-    <Modal title="Alarme"
-     open={isAlarmeVisible} 
+    <Modal title=""
+     open={isMasuratoriVisible} 
      okText="Salvează"
-     onCancel={handleCancelAlarme}
+     onCancel={handleCancelMasuratori}
      footer={null} 
     >
-   
+      {selectedPatient && (
+   <Title level={5}>Măsurători anterioare  - <b>{selectedPatient.nume_prenume}</b></Title>
+  )}
       <div className='delimiter'>
-        <Title level={5}>Măsuratori:</Title>
-        <Descriptions bordered items={ValorileActualeModul} size="small" />
+      <div>
+        
+
+  {ultimeleMasuratori.length === 0 ?  (
+    <Title level={5}>Nu există măsurători anterioare.</Title>
+  ) : ( 
+    ultimeleMasuratori.map((masuratori, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
+  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
+  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+  
+</div>
+
+       <div className='delimiter'>  
+       <Title level={4}>ECG:</Title>
+       <div>Grafic ECG</div>
+       </div>  
         </div>
+
         <br/>
-       
-        <Form form={formAlarme}  autoComplete='off'>
+
+        <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showAdaugareLimite(); }} >
+            Adăugare limite
+        </Button>  
+
+        <Modal title="" open={isAdaugaLimiteVisible} 
+         okText="Salvează"
+         onCancel={handleCancelAdaugaLimite}
+        
+         footer={null} >  
+         {selectedPatient && (
+    <>
+          <Title level={5}>Adăugare limite - <b>{selectedPatient.nume_prenume}</b></Title>
+          <br/>
+          <Form form={formLimite}  autoComplete='off'>
         <div className='delimiter'>
         <Title level={5}>Limite repaus</Title>
         <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
@@ -764,28 +772,20 @@ const Pacienti: React.FC = () => {
         </Form.Item>
         </Col>
         </Row>
-        </div>  
+        </div>
         <br/>
-        <div className='delimiter'>  
-        <Title level={4}>ECG:</Title>
-        <div>Grafic ECG</div>
-        </div>  
- 
-        <br/>
-        <div className='delimiter'> 
-        <Form.Item >
-        <Title level={5}>Setați alarmă</Title>
-        <Switch />
-        </Form.Item>
-       </div>
-       <br/>
         <Form.Item>
-          <Button shape="round" type="primary" htmlType="submit">
+          <Button shape="round" type="primary" htmlType="submit" onClick={() => { handleSalveazaLimite();  }}>
             Salvează
           </Button>
         </Form.Item>
       </Form>
-    </Modal>
+      </>
+  )}
+        </Modal>
+        </Modal>
+
+ 
 
     
         <Modal title=""
@@ -801,7 +801,7 @@ const Pacienti: React.FC = () => {
         
        
       <div>
-      Recomandări anterioare pentru pacientul <b>{selectedPatient.nume_prenume}</b>:
+      Recomandări anterioare - <b>{selectedPatient.nume_prenume}</b>
   <br />
   <br />
   {ultimeleRecomandari.length === 0 ?  (
@@ -827,11 +827,15 @@ const Pacienti: React.FC = () => {
             Adaugă
         </Button>  
 
-        <Modal title="Adăugare recomandări" open={isAdaugaRecomandariVisible} 
+        <Modal title="" open={isAdaugaRecomandariVisible} 
          okText="Salvează"
          onCancel={handleCancelAdaugaRecomandari}
         
          footer={null} >  
+         {selectedPatient && (
+    <>
+          <Title level={5}>Adăugare recomandări - <b>{selectedPatient.nume_prenume}</b></Title>
+          <br/>
          <Form form={formRecomandari}  autoComplete='off'>
         <Title level={5}>Titlu</Title>
          <Form.Item name="titlu" rules={[{ required: true, message: 'Vă rog să introduceți titlul.' }]}>
@@ -851,6 +855,8 @@ const Pacienti: React.FC = () => {
           </Button>
         </Form.Item>
         </Form>
+        </>
+  )}
         </Modal>
         </Modal>
     <Modal
@@ -862,8 +868,26 @@ const Pacienti: React.FC = () => {
         {selectedPatient && (
           <>
           <Space direction="vertical" size={15}>
-            <Descriptions items={items} bordered>
-            </Descriptions>
+
+            <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Nume" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.nume_prenume}</Descriptions.Item>
+  <Descriptions.Item label="Vârstă" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.varsta}</Descriptions.Item>
+  <Descriptions.Item label="CNP" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.CNP}</Descriptions.Item>
+  <Descriptions.Item label="Adresă" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.adresa}</Descriptions.Item>
+  <Descriptions.Item label="Contact" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>
+    Telefon: {selectedPatient?.telefon}
+    <br />
+    Email: {selectedPatient?.email}
+  </Descriptions.Item>
+  <Descriptions.Item label="Profesie" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.profesie}</Descriptions.Item>
+  <Descriptions.Item label="Detalii medicale" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>
+    Istoric medical: {selectedPatient?.istoric}
+    <br />
+    Alergii: {selectedPatient?.alergii}
+    <br />
+    Consultații cardiologice: {selectedPatient?.consultatii}
+  </Descriptions.Item>
+</Descriptions>
             </Space>
             </>
         )}

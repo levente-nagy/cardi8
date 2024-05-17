@@ -12,6 +12,7 @@ const UserProfilePage: React.FC = () => {
   const [userData, setUserData] = useState<any>(null);
   const [medicName, setMedicName] = useState<string | null>(null);
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
+  const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -22,8 +23,7 @@ const UserProfilePage: React.FC = () => {
         console.log('No user logged in');
       }
     });
-  
-    // Cleanup subscription on unmount
+
     return () => unsubscribe();
   }, []);
   
@@ -45,6 +45,24 @@ const UserProfilePage: React.FC = () => {
       setUltimeleRecomandari([]);
     });
   };
+
+  const fetchUltimeleMasuratori = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.masuratori) {
+        const masuratoriArray = Object.values(patientData.masuratori);
+        const ultimeleMasuratori = masuratoriArray.slice(-5); 
+        setUltimeleMasuratori(ultimeleMasuratori);
+      } else {
+        setUltimeleMasuratori([]);
+      }
+    }, (error) => {
+      console.error('Error fetching masuratori:', error);
+      setUltimeleMasuratori([]);
+    });
+  };
   
   const fetchUserData = async (userId: string) => {
     try {
@@ -54,6 +72,7 @@ const UserProfilePage: React.FC = () => {
         const userData = userDoc.data();
         setUserData(userData);
         fetchUltimeleRecomandari(userId);
+        fetchUltimeleMasuratori(userId);
   
         if (userData.medic_id) {
           const medicName = await fetchMedicName(userData.medic_id);
@@ -109,77 +128,6 @@ const UserProfilePage: React.FC = () => {
 
 
 
- 
-
-  const demographicItems = [
-
-    {
-      
-      label: 'Nume',
-      children: userData.nume_prenume,
-      
-    },
-    {
- 
-      label: 'Vârstă',
-      children: userData.varsta,
-      span: 2,
-    },
-    {
-     
-      label: 'CNP',
-      children: userData.CNP,
-      
-    },
-    {
-     
-      label: 'Adresă',
-      children: userData.adresa,
-      span: 2,
-      
-    },
-    {
-     
-      label: 'Contact',
-      children: `Telefon: ${userData.telefon}, Email: ${userData.email}`,
-      
-    },
-    {
-     
-      label: 'Profesie',
-      children: userData.profesie,
-      span: 2,
-    },
-  ];
-
-  const medicalItems = [
-    {
-      
-      label: 'Medic',
-      children: medicName,
-      
-    },
-    {
-      
-      label: 'Istoric Medical',
-      children: userData.istoric,
-      span: 2,
-    },
-    {
-      
-      label: 'Alergii',
-      children: userData.alergii,
-      
-    },
-    {
-      
-      label: 'Consultaţii Cardiologice',
-      children: userData.consultatii,
-      span: 2,
-    },
- 
-  ];
-
   return (
     <ConfigProvider
     theme={{
@@ -208,17 +156,21 @@ const UserProfilePage: React.FC = () => {
          
     
         <Title level={4}>Date personale</Title>
-        <Descriptions bordered>
-          {demographicItems.map(item => (
-            <Descriptions.Item labelStyle={{width: '20%'}} contentStyle={{width: '20%'}} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
-          ))}
-        </Descriptions>
+        <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Nume" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.nume_prenume}</Descriptions.Item>
+  <Descriptions.Item label="Vârstă" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.varsta}</Descriptions.Item>
+  <Descriptions.Item label="CNP" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.CNP}</Descriptions.Item>
+  <Descriptions.Item label="Adresă" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.adresa}</Descriptions.Item>
+  <Descriptions.Item label="Contact" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>Telefon: {userData.telefon}, Email: {userData.email}</Descriptions.Item>
+  <Descriptions.Item label="Profesie" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.profesie}</Descriptions.Item>
+</Descriptions>
         <Title level={4}>Detalii medicale</Title>
-        <Descriptions bordered>
-          {medicalItems.map(item => (
-            <Descriptions.Item  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}} label={item.label} span={item.span}>{item.children}</Descriptions.Item>
-          ))}
-        </Descriptions>
+        <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Medic" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{medicName}</Descriptions.Item>
+  <Descriptions.Item label="Istoric Medical" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.istoric}</Descriptions.Item>
+  <Descriptions.Item label="Alergii" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.alergii}</Descriptions.Item>
+  <Descriptions.Item label="Consultaţii Cardiologice" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.consultatii}</Descriptions.Item>
+</Descriptions>
 
         <div>
         <Title level={4}>Recomandări</Title>
@@ -240,7 +192,27 @@ const UserProfilePage: React.FC = () => {
     ))
   )}
 </div>
+<div>
+        <Title level={4}>Măsurători</Title>
 
+
+        {ultimeleMasuratori.length === 0 ?  (
+    <Title level={5}>Nu există măsurători anterioare.</Title>
+  ) : ( 
+    ultimeleMasuratori.map((masuratori, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
+  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
+  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+</div>
 
         </Space>
       </div>
