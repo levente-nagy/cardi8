@@ -2,7 +2,7 @@ import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
 import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col } from 'antd';
-import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled} from '@ant-design/icons';
+import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled} from '@ant-design/icons';
 import Title from 'antd/es/typography/Title';
 import { Item } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +17,8 @@ const Pacienti: React.FC = () => {
   const [isMasuratoriVisible, setMasuratoriVisible] = useState(false);
   const [isRecomandariVisible, setRecomandariVisible] = useState(false);
   const [isAdaugaLimiteVisible, setAdaugaLimiteVisible] = useState(false);
+  const [isECGVisible, setECGVisible] = useState(false);
+  const [isAlarmeVisible, setAlarmeVisible] = useState(false);
   const [isAdaugaRecomandariVisible, setAdaugaRecomandariVisible] = useState(false);
   const [isViewVisible, setIsViewVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
@@ -28,6 +30,8 @@ const Pacienti: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<Item | null>(null);
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
+  const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
+  const [ultimeleAlarmeCount, setUltimeleAlarmeCount] = useState(ultimeleAlarme.length);
 
   const navigate = useNavigate();
   
@@ -66,17 +70,27 @@ const Pacienti: React.FC = () => {
     },
 
     {
-      title: 'Măsuratori',
+      title: 'Modul inteligent',
       key: 'masuratori',
       width: 80,
       
       render: (record: Item) => (
-        <Flex gap="small" vertical justify="center" align='center'>
-        <Badge count={5}>
-        <Button shape="round" className="view_button" onClick={() =>{ showMasuratori(); handleSelectPatient(record);}}>
+        <Flex gap="small" vertical justify="center" align='center' flex-wrap='wrap'>
+        <Button shape="round" className="view_button" onClick={() =>{ showAdaugareLimite(); handleSelectPatient(record);}}>
+        <ControlFilled />
+        </Button>
+        <Badge count={ultimeleAlarmeCount}>
+       
+        <Button shape="round" className="view_button" onClick={() =>{ showAlarme(); handleSelectPatient(record);}}>
         <BellFilled />
         </Button>
         </Badge>
+        <Button shape="round" className="view_button" onClick={() =>{ showMasuratori(); handleSelectPatient(record);}}>
+        <DashboardFilled />
+        </Button>
+        <Button shape="round" className="view_button" onClick={() =>{ showECG(); handleSelectPatient(record);}}>
+        <FundFilled />
+        </Button>
         </Flex>
       ),
     },
@@ -293,6 +307,7 @@ const Pacienti: React.FC = () => {
   const handleSelectPatient = (patient: Item) => {
     fetchUltimeleRecomandari(patient.id);
     fetchUltimeleMasuratori(patient.id);
+    fetchUltimeleAlarme(patient.id);
     setSelectedPatient(patient);
   };
 
@@ -331,6 +346,25 @@ const Pacienti: React.FC = () => {
       setUltimeleMasuratori([]);
     });
   };
+
+  const fetchUltimeleAlarme = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.alarme) {
+        const alarmeArray = Object.values(patientData.alarme);
+        const ultimeleAlarme = alarmeArray.slice(-5); 
+        setUltimeleAlarme(ultimeleAlarme);
+      } else {
+        setUltimeleAlarme([]);
+      }
+    }, (error) => {
+      console.error('Error fetching alarme:', error);
+      setUltimeleAlarme([]);
+    });
+  };
+
 
 
 
@@ -461,13 +495,30 @@ const handleSalveazaLimite = async () => {
     setAdaugaLimiteVisible(false);
   };
 
+  const handleCancelECG = () => {
+    setECGVisible(false);
+  };
+
+  const handleCancelAlarme = () => {
+    setAlarmeVisible(false);
+  };
+
   const showMasuratori = () => {
 
     setMasuratoriVisible(true);
   };
 
 
+  const showECG = () => {
+
+    setECGVisible(true);
+  };
   
+  const showAlarme = () => {
+
+    setAlarmeVisible(true);
+    setUltimeleAlarmeCount(0);
+  };
 
   const showRecomandari  = () => {
     setRecomandariVisible(true);
@@ -483,6 +534,8 @@ const handleSalveazaLimite = async () => {
     formLimite.resetFields();
     setAdaugaLimiteVisible(true);
   };
+
+
       
   return (
     <>
@@ -621,60 +674,17 @@ const handleSalveazaLimite = async () => {
     </Form>
     </Modal>
 
-
-    <Modal title=""
-     open={isMasuratoriVisible} 
-     okText="Salvează"
-     onCancel={handleCancelMasuratori}
-     footer={null} 
-    >
-      {selectedPatient && (
-   <Title level={5}>Măsurători anterioare  - <b>{selectedPatient.nume_prenume}</b></Title>
-  )}
-      <div className='delimiter'>
-      <div>
-        
-
-  {ultimeleMasuratori.length === 0 ?  (
-    <Title level={5}>Nu există măsurători anterioare.</Title>
-  ) : ( 
-    ultimeleMasuratori.map((masuratori, index) => (
-      
-     
-<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
-  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
-  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
-  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
-</Descriptions>
-
-
-    ))
-  )}
-  
-</div>
-
-       <div className='delimiter'>  
-       <Title level={4}>ECG:</Title>
-       <div>Grafic ECG</div>
-       </div>  
-        </div>
-
-        <br/>
-
-        <Button shape="round" type="primary" htmlType="submit" onClick={() =>{ showAdaugareLimite(); }} >
-            Adăugare limite
-        </Button>  
-
-        <Modal title="" open={isAdaugaLimiteVisible} 
+    <Modal title="" open={isAdaugaLimiteVisible} 
          okText="Salvează"
          onCancel={handleCancelAdaugaLimite}
         
          footer={null} >  
+          <>
          {selectedPatient && (
-    <>
+   
           <Title level={5}>Adăugare limite - <b>{selectedPatient.nume_prenume}</b></Title>
-          <br/>
+        )}
+        <br/>
           <Form form={formLimite}  autoComplete='off'>
         <div className='delimiter'>
         <Title level={5}>Limite repaus</Title>
@@ -781,11 +791,108 @@ const handleSalveazaLimite = async () => {
         </Form.Item>
       </Form>
       </>
-  )}
-        </Modal>
+ 
         </Modal>
 
- 
+        <Modal title=""
+     open={isAlarmeVisible} 
+     okText="Salvează"
+     onCancel={handleCancelAlarme}
+     footer={null} 
+    >
+      {selectedPatient && (
+   
+   <Title level={5}>Alarme anterioare - <b>{selectedPatient.nume_prenume}</b></Title>
+   
+ )}
+ <br/>
+      <div className='delimiter'>
+      <div>
+
+
+
+  {ultimeleAlarme.length === 0 ?  (
+    <Title level={5}>Nu există alarme anterioare.</Title>
+  ) : ( 
+    ultimeleAlarme.map((alarme, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.tip}</Descriptions.Item>
+  <Descriptions.Item label="Stare" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.stare}</Descriptions.Item>
+  <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.descriere}</Descriptions.Item>
+  <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.comentariu}</Descriptions.Item> 
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+  
+</div>
+
+
+        </div>
+      </Modal>
+
+    <Modal title=""
+     open={isMasuratoriVisible} 
+     okText="Salvează"
+     onCancel={handleCancelMasuratori}
+     footer={null} 
+    >
+      {selectedPatient && (
+   
+   <Title level={5}>Măsurători anterioare - <b>{selectedPatient.nume_prenume}</b></Title>
+   
+ )}
+ <br/>
+      <div className='delimiter'>
+      <div>
+
+
+
+  {ultimeleMasuratori.length === 0 ?  (
+    <Title level={5}>Nu există măsurători anterioare.</Title>
+  ) : ( 
+    ultimeleMasuratori.map((masuratori, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
+  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
+  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+  
+</div>
+
+
+        </div>
+        </Modal>
+
+        <Modal title="" open={isECGVisible} 
+         okText="Salvează"
+         onCancel={handleCancelECG}
+        
+         footer={null} >  
+               {selectedPatient && (
+   
+   <Title level={5}>ECG - <b>{selectedPatient.nume_prenume}</b></Title>
+   
+ )}
+  <br/>
+       <div className='delimiter'>  
+       
+       <div>Grafic ECG</div>
+       </div>  
+         </Modal>      
+
+       
 
     
         <Modal title=""
