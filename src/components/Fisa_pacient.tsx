@@ -13,6 +13,7 @@ const UserProfilePage: React.FC = () => {
   const [medicName, setMedicName] = useState<string | null>(null);
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
+  const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -63,6 +64,25 @@ const UserProfilePage: React.FC = () => {
       setUltimeleMasuratori([]);
     });
   };
+
+  const fetchUltimeleAlarme = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.alarme) {
+        const alarmeArray = Object.values(patientData.alarme);
+        const ultimeleAlarme = alarmeArray.slice(-5); 
+        setUltimeleAlarme(ultimeleAlarme);
+      } else {
+        setUltimeleAlarme([]);
+      }
+    }, (error) => {
+      console.error('Error fetching alarme:', error);
+      setUltimeleAlarme([]);
+    });
+  };
+
   
   const fetchUserData = async (userId: string) => {
     try {
@@ -73,6 +93,7 @@ const UserProfilePage: React.FC = () => {
         setUserData(userData);
         fetchUltimeleRecomandari(userId);
         fetchUltimeleMasuratori(userId);
+        fetchUltimeleAlarme(userId);
   
         if (userData.medic_id) {
           const medicName = await fetchMedicName(userData.medic_id);
@@ -207,6 +228,30 @@ const UserProfilePage: React.FC = () => {
   <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
   <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
   <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+</Descriptions>
+
+
+    ))
+  )}
+</div>
+
+<div>
+        <Title level={4}>Alarme</Title>
+
+
+        
+  {ultimeleAlarme.length === 0 ?  (
+    <Title level={5}>Nu există alarme anterioare.</Title>
+  ) : ( 
+    ultimeleAlarme.map((alarme, index) => (
+      
+     
+<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+  <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.tip}</Descriptions.Item>
+  <Descriptions.Item label="Stare" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.stare}</Descriptions.Item>
+  <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.descriere}</Descriptions.Item>
+  <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.comentariu}</Descriptions.Item> 
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.time_stamp}</Descriptions.Item>    
 </Descriptions>
 
 
