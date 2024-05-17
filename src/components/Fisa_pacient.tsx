@@ -169,13 +169,13 @@ const UserProfilePage: React.FC = () => {
         <img src="/banner_brand.png" className='banner_brand' alt="Brand Banner" />
         <div className='fisa_pacient'>
           <Avatar size={64} icon={<UserOutlined />} className='avatar' />
-          <Title level={3}>Profil medical<br/></Title>
+          <Title level={4}>Profil medical - {userData.nume_prenume}<br/></Title>
         </div>
       </div>
       <div className='fisa'>
         <Space direction="vertical" size={10} >
          
-    
+        <div className='delimiter'>
         <Title level={4}>Date personale</Title>
         <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
   <Descriptions.Item label="Nume" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.nume_prenume}</Descriptions.Item>
@@ -185,6 +185,8 @@ const UserProfilePage: React.FC = () => {
   <Descriptions.Item label="Contact" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>Telefon: {userData.telefon}, Email: {userData.email}</Descriptions.Item>
   <Descriptions.Item label="Profesie" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.profesie}</Descriptions.Item>
 </Descriptions>
+</div>
+<div className='delimiter'>
         <Title level={4}>Detalii medicale</Title>
         <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
   <Descriptions.Item label="Medic" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{medicName}</Descriptions.Item>
@@ -192,8 +194,8 @@ const UserProfilePage: React.FC = () => {
   <Descriptions.Item label="Alergii" labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.alergii}</Descriptions.Item>
   <Descriptions.Item label="Consultaţii Cardiologice" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{userData.consultatii}</Descriptions.Item>
 </Descriptions>
-
-        <div>
+</div>
+<div className='delimiter'>
         <Title level={4}>Recomandări</Title>
 
   {ultimeleRecomandari.length === 0 ?  (
@@ -213,7 +215,7 @@ const UserProfilePage: React.FC = () => {
     ))
   )}
 </div>
-<div>
+<div className='delimiter'>
         <Title level={4}>Măsurători</Title>
 
 
@@ -235,7 +237,8 @@ const UserProfilePage: React.FC = () => {
   )}
 </div>
 
-<div>
+
+<div className='delimiter'>
         <Title level={4}>Alarme</Title>
 
 
