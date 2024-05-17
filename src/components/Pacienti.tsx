@@ -31,7 +31,7 @@ const Pacienti: React.FC = () => {
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
-  const [ultimeleAlarmeCount, setUltimeleAlarmeCount] = useState(ultimeleAlarme.length);
+
 
   const navigate = useNavigate();
   
@@ -75,11 +75,11 @@ const Pacienti: React.FC = () => {
       width: 80,
       
       render: (record: Item) => (
-        <Flex gap="small" vertical justify="center" align='center' flex-wrap='wrap'>
+        <Flex gap="small" vertical justify="center" align='center'>
         <Button shape="round" className="view_button" onClick={() =>{ showAdaugareLimite(); handleSelectPatient(record);}}>
         <ControlFilled />
         </Button>
-        <Badge count={ultimeleAlarmeCount}>
+        <Badge count={0}>
        
         <Button shape="round" className="view_button" onClick={() =>{ showAlarme(); handleSelectPatient(record);}}>
         <BellFilled />
@@ -517,7 +517,7 @@ const handleSalveazaLimite = async () => {
   const showAlarme = () => {
 
     setAlarmeVisible(true);
-    setUltimeleAlarmeCount(0);
+    
   };
 
   const showRecomandari  = () => {
