@@ -693,7 +693,7 @@ const handleSalveazaLimite = async () => {
         <Title level={5}>Puls:</Title>
         </Col>
         <Col className="gutter-row" >
-        <Form.Item label="Minim" name="puls_min_repaus">
+        <Form.Item label="Minim" name="puls_min_repaus" >
         <InputNumber style={{ width: 70 }}/>
         </Form.Item>
         </Col>
@@ -818,7 +818,7 @@ const handleSalveazaLimite = async () => {
       
      
 <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-  <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.tip}</Descriptions.Item>
+  <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '30%'}}>{alarme.tip}</Descriptions.Item>
   <Descriptions.Item label="Stare" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.stare}</Descriptions.Item>
   <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.descriere}</Descriptions.Item>
   <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.comentariu}</Descriptions.Item> 
@@ -859,10 +859,10 @@ const handleSalveazaLimite = async () => {
       
      
 <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
-  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
-  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
-  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+  <Descriptions.Item label="Puls"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.puls}</Descriptions.Item>
+  <Descriptions.Item label="Temperatură"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.temp}</Descriptions.Item>
+  <Descriptions.Item label="Umiditate"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.umid}</Descriptions.Item>
+  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '10%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
 </Descriptions>
 
 
