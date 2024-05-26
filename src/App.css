@@ -68,3 +68,32 @@ h5, h4{
   text-align: right;
   margin: 0.8rem;
 }
+
+.banner_print{
+  display: none;
+}
+
+@media print{
+  .to_hide{
+  display:none;
+  }
+  .ant-modal-close{
+    display:none;
+  }
+  .banner_print{
+    display: block;
+    
+  }
+  .banner_print_img{
+    width: 10rem;
+  }
+
+  }
+
+  @media print {
+    
+    body,html { margin-top:0%;
+      display:block;
+      height:100%;}
+      top:0;
+  }

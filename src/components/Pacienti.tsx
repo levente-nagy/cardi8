@@ -1,15 +1,23 @@
 import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
-import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col } from 'antd';
-import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled} from '@ant-design/icons';
-import Title from 'antd/es/typography/Title';
+import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col, Divider } from 'antd';
+import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled, FileTextFilled} from '@ant-design/icons';
+
 import { Item } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
+import { Checkbox,  Typography } from 'antd';
+import type { GetProp } from 'antd';
 
+const { Title } = Typography;
 
+type CheckboxValueType = GetProp<typeof Checkbox.Group, 'value'>[number];
 
+const CheckboxGroup = Checkbox.Group;
+
+const plainOptions: string[] = ['Detalii pacient', 'Recomandări', 'Alarme', 'Măsurători', 'ECG'];
+const defaultCheckedList: string[] = [];
 
 const Pacienti: React.FC = () => {
 
@@ -21,6 +29,7 @@ const Pacienti: React.FC = () => {
   const [isAlarmeVisible, setAlarmeVisible] = useState(false);
   const [isAdaugaRecomandariVisible, setAdaugaRecomandariVisible] = useState(false);
   const [isViewVisible, setIsViewVisible] = useState(false);
+  const [isReportVisible, setIsReportVisible] = useState(false);
   const [editing, setEditing] = useState<Item | null>(null);
   const [dataSource, setDataSource] = useState<Item[]>([]);
   const [formDatePacient] = Form.useForm();
@@ -31,6 +40,22 @@ const Pacienti: React.FC = () => {
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
+  const [badgeCounts, setBadgeCounts] = useState<{ [key: string]: number }>(() => {
+    const savedBadgeCounts = localStorage.getItem('badgeCounts');
+    return savedBadgeCounts ? JSON.parse(savedBadgeCounts) : {};
+  });
+
+  const [lastKnownAlarmCounts, setLastKnownAlarmCounts] = useState<{ [key: string]: number }>(() => {
+    const savedAlarmCounts = localStorage.getItem('lastKnownAlarmCounts');
+    return savedAlarmCounts ? JSON.parse(savedAlarmCounts) : {};
+  });
+
+  const [checkedList, setCheckedList] = useState<CheckboxValueType[]>(defaultCheckedList);
+  const [showReportDetalii, setShowReportDetalii] = useState<boolean>(false);
+  const [showReportRecomandari, setShowReportRecomandari] = useState<boolean>(false);
+  const [showReportAlarme, setShowReportAlarme] = useState<boolean>(false);
+  const [showReportMasuratori, setShowReportMasuratori] = useState<boolean>(false);
+  const [showReportECG, setShowReportECG] = useState<boolean>(false);
 
 
   const navigate = useNavigate();
@@ -79,9 +104,9 @@ const Pacienti: React.FC = () => {
         <Button shape="round" className="view_button" onClick={() =>{ showAdaugareLimite(); handleSelectPatient(record);}}>
         <ControlFilled />
         </Button>
-        <Badge count={0}>
+        <Badge count={badgeCounts[record.id] || 0}>
        
-        <Button shape="round" className="view_button" onClick={() =>{ showAlarme(); handleSelectPatient(record);}}>
+        <Button shape="round" className="view_button" onClick={() =>{ showAlarme(record.id); handleSelectPatient(record);}}>
         <BellFilled />
         </Button>
         </Badge>
@@ -106,6 +131,10 @@ const Pacienti: React.FC = () => {
               setIsViewVisible(true);}}>
           <EyeFilled />
         </Button>
+        <Button shape="round" className="view_button" onClick={() =>{setSelectedPatient(record); handleSelectPatient(record);
+              showReport()}}>
+          <FileTextFilled />
+        </Button>
           <Button shape="round" onClick={() =>{ showModal(record);  setEditing(record);}} className='action_button' ><EditFilled /></Button>
           <Popconfirm title="Sunteţi sigur că vreţi să ştergeţi acest pacient?" onConfirm={() => handleDelete(record.id)} okText="Da" cancelText="Nu">
             <Button shape="round"  className='action_button' ><DeleteFilled /></Button>
@@ -117,28 +146,35 @@ const Pacienti: React.FC = () => {
  
   ];
 
+  const onChange = (list: CheckboxValueType[]) => {
+    setCheckedList(list);
+    setShowReportDetalii(list.includes('Detalii pacient'));
+    setShowReportRecomandari(list.includes('Recomandări'));
+    setShowReportAlarme(list.includes('Alarme'));
+    setShowReportMasuratori(list.includes('Măsurători'));
+    setShowReportECG(list.includes('ECG'));
+  };
 
+
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         const medic_id = user.uid;
-        console.log('medic_id:', medic_id); 
         setLoggedInUserId(medic_id);
         const getPatients = async () => {
           try {
             const medicDocRef = doc(db, "medici", medic_id);
             const unsubscribeSnapshot = onSnapshot(medicDocRef, async (docSnapshot) => {
-              console.log('docSnapshot.exists():', docSnapshot.exists()); 
               if (docSnapshot.exists()) {
                 const pacientiArray = docSnapshot.data().pacienti || [];
-                console.log('pacientiArray:', pacientiArray); 
                 const patientsPromises = pacientiArray.map(async (patientId: string) => {
                   const patientDocSnapshot = await getDoc(doc(db, "pacienti", patientId));
                   return { ...patientDocSnapshot.data(), id: patientDocSnapshot.id } as Item;
                 });
                 const patients = await Promise.all(patientsPromises);
-                console.log('patients:', patients);
                 setDataSource(patients);
+                patients.forEach(patient => setupAlarmListener(patient.id));
               } else {
                 setDataSource([]);
               }
@@ -154,6 +190,39 @@ const Pacienti: React.FC = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('badgeCounts', JSON.stringify(badgeCounts));
+    localStorage.setItem('lastKnownAlarmCounts', JSON.stringify(lastKnownAlarmCounts));
+  }, [badgeCounts, lastKnownAlarmCounts]);
+
+  const setupAlarmListener = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.alarme) {
+        const alarmeArray = Object.values(patientData.alarme);
+        const currentAlarmCount = alarmeArray.length;
+
+        setLastKnownAlarmCounts((prevCounts) => {
+          const prevAlarmCount = prevCounts[patientId] || 0;
+          if (currentAlarmCount > prevAlarmCount) {
+            setBadgeCounts((prevBadgeCounts) => ({
+              ...prevBadgeCounts,
+              [patientId]: (prevBadgeCounts[patientId] || 0) + (currentAlarmCount - prevAlarmCount)
+            }));
+          }
+          return {
+            ...prevCounts,
+            [patientId]: currentAlarmCount
+          };
+        });
+      }
+    }, (error) => {
+      console.error('Error fetching alarme:', error);
+    });
+  };
 
 
   const showModal = (record: Item | null) => {
@@ -349,13 +418,15 @@ const Pacienti: React.FC = () => {
 
   const fetchUltimeleAlarme = (patientId: string) => {
     const patientDocRef = doc(db, 'pacienti', patientId);
-  
+
     onSnapshot(patientDocRef, (snapshot) => {
       const patientData = snapshot.data();
       if (patientData && patientData.alarme) {
         const alarmeArray = Object.values(patientData.alarme);
-        const ultimeleAlarme = alarmeArray.slice(-5); 
+        const ultimeleAlarme = alarmeArray.slice(-5);
         setUltimeleAlarme(ultimeleAlarme);
+
+      
       } else {
         setUltimeleAlarme([]);
       }
@@ -483,6 +554,10 @@ const handleSalveazaLimite = async () => {
     setIsViewVisible(false);
   };
 
+  const handleCancelReport = () => {
+    setIsReportVisible(false);
+  };
+
   const handleCancelRecomandari = () => {
     setRecomandariVisible(false);
   };
@@ -513,11 +588,19 @@ const handleSalveazaLimite = async () => {
 
     setECGVisible(true);
   };
-  
-  const showAlarme = () => {
 
+  const showReport = () => {
+
+    setIsReportVisible(true);
+  };
+  
+  const showAlarme = (patientId: string) => {
     setAlarmeVisible(true);
-    
+
+    setBadgeCounts((prevCounts) => ({
+      ...prevCounts,
+      [patientId]: 0
+    }));
   };
 
   const showRecomandari  = () => {
@@ -976,7 +1059,7 @@ const handleSalveazaLimite = async () => {
           <>
           <Space direction="vertical" size={15}>
 
-            <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
+            <Descriptions bordered size='small' >
   <Descriptions.Item label="Nume" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.nume_prenume}</Descriptions.Item>
   <Descriptions.Item label="Vârstă" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.varsta}</Descriptions.Item>
   <Descriptions.Item label="CNP" span={3} labelStyle={{width: '50%'}} contentStyle={{width: '50%'}}>{selectedPatient?.CNP}</Descriptions.Item>
@@ -998,6 +1081,171 @@ const handleSalveazaLimite = async () => {
             </Space>
             </>
         )}
+      </Modal>
+      
+      <Modal
+        title=""
+        open={isReportVisible}
+        onCancel={handleCancelReport}
+        footer={null}
+        className='section-to-print'
+       width={800}
+      >
+        {selectedPatient && (
+<>
+
+
+      <Button shape="round" type="primary" htmlType="submit" onClick={() => { print(); }} className='to_hide'>
+        Tipărire
+      </Button>
+      <Divider className='to_hide'/>
+      <div className='banner_print'>
+      <img src="/banner_brand.png" className='banner_print_img' />
+      <br/>
+      <br/>
+      </div>
+
+
+  
+<Title  level={5}>Raport pacient - <b>{selectedPatient.nume_prenume}</b></Title>
+
+
+
+<Divider className='to_hide'/>
+
+<Row className='to_hide'>
+  <Col span={8}>
+      <CheckboxGroup style={{width : "50%"}} options={plainOptions} value={checkedList} onChange={onChange} />
+      </Col>
+      </Row>
+  
+      {showReportDetalii && (
+        <>
+        <Divider />
+        <Title  level={5}>Detalii pacient</Title>
+          
+            <Descriptions bordered size='small'  >
+              <Descriptions.Item label="Nume" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{selectedPatient?.nume_prenume}</Descriptions.Item>
+              <Descriptions.Item label="Vârstă" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{selectedPatient?.varsta}</Descriptions.Item>
+              <Descriptions.Item label="CNP" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{selectedPatient?.CNP}</Descriptions.Item>
+              <Descriptions.Item label="Adresă" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{selectedPatient?.adresa}</Descriptions.Item>
+              <Descriptions.Item label="Contact" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>
+                Telefon: {selectedPatient?.telefon}
+                <br />
+                Email: {selectedPatient?.email}
+              </Descriptions.Item>
+              <Descriptions.Item label="Profesie" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{selectedPatient?.profesie}</Descriptions.Item>
+              <Descriptions.Item label="Detalii medicale" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>
+                Istoric medical: {selectedPatient?.istoric}
+                <br />
+                Alergii: {selectedPatient?.alergii}
+                <br />
+                Consultații cardiologice: {selectedPatient?.consultatii}
+              </Descriptions.Item>
+            </Descriptions>
+      
+        </>
+      )}
+      {showReportRecomandari && (
+        <>
+         <Divider />
+          
+            <div>
+            
+        <Title  level={5}>Recomandări anterioare</Title>
+             
+           
+              {ultimeleRecomandari.length === 0 ? (
+                <p>Nu există recomandări anterioare.</p>
+              ) : (
+                ultimeleRecomandari.map((recommendation, index) => (
+      
+                  <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+                    <Descriptions.Item label="Titlu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{recommendation.titlu}</Descriptions.Item>
+                    <Descriptions.Item label="Descriere" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{recommendation.descriere}</Descriptions.Item>
+                    <Descriptions.Item label="Observații" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{recommendation.observatii}</Descriptions.Item>
+                    <Descriptions.Item label="Data și ora" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{recommendation.time_stamp}</Descriptions.Item>    
+                  </Descriptions>
+                ))
+              )}
+            </div>
+          
+        </>
+      )}
+      {showReportAlarme && (
+        <>
+         
+            <>
+              <Divider />
+        <Title  level={5}>Alarme anterioare</Title>
+              
+           
+                <div>
+                  {ultimeleAlarme.length === 0 ? (
+                    <p>Nu există alarme anterioare.</p>
+                  ) : (
+                    ultimeleAlarme.map((alarme, index) => (
+                      <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+                        <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '30%'}}>{alarme.tip}</Descriptions.Item>
+                        <Descriptions.Item label="Stare" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.stare}</Descriptions.Item>
+                        <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.descriere}</Descriptions.Item>
+                        <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.comentariu}</Descriptions.Item> 
+                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.time_stamp}</Descriptions.Item>    
+                      </Descriptions>
+                    ))
+                  )}
+                </div>
+             
+            </>
+       
+        </>
+      )}
+      {showReportMasuratori && (
+        <>
+          {selectedPatient && (
+            <>
+              <Divider />
+        <Title  level={5}>Măsurători anterioare</Title>
+              
+                <div>
+                  {ultimeleMasuratori.length === 0 ? (
+                    <p>Nu există măsurători anterioare.</p>
+                  ) : (
+                    ultimeleMasuratori.map((masuratori, index) => (
+                      <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+                        <Descriptions.Item label="Puls"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.puls}</Descriptions.Item>
+                        <Descriptions.Item label="Temperatură"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.temp}</Descriptions.Item>
+                        <Descriptions.Item label="Umiditate"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.umid}</Descriptions.Item>
+                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '10%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+                      </Descriptions>
+                    ))
+                  )}
+                </div>
+              
+            </>
+          )}
+        </>
+      )}
+      {showReportECG && (
+        <>
+         
+            <>
+                       <Divider />
+        <Title  level={5}>Grafic ECG</Title>
+              
+                <div>Grafic ECG</div>
+             
+              </>
+            
+        </>
+          
+      )}
+
+
+      </>
+  )}
+
+
       </Modal>
     </ConfigProvider>
 
