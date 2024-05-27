@@ -1,7 +1,7 @@
 import  { useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
-import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col, Divider } from 'antd';
+import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col, Divider, Tooltip } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled, FileTextFilled} from '@ant-design/icons';
 
 import { Item } from '../types';
@@ -85,9 +85,11 @@ const Pacienti: React.FC = () => {
      
       render: (record: Item) => (
         <Flex gap="small" vertical justify="center" align='center'>
+          
        <Button shape="round" className="view_button" style={{ verticalAlign: "baseline" }} onClick={() =>{ showRecomandari(); handleSelectPatient(record); }}>
           <UnorderedListOutlined /> 
         </Button>
+        
         </Flex>
        
           
@@ -101,21 +103,29 @@ const Pacienti: React.FC = () => {
       
       render: (record: Item) => (
         <Flex gap="small" vertical justify="center" align='center'>
+          <Tooltip title="Limite">
         <Button shape="round" className="view_button" onClick={() =>{ showAdaugareLimite(); handleSelectPatient(record);}}>
         <ControlFilled />
         </Button>
+        </Tooltip>
+        
         <Badge count={badgeCounts[record.id] || 0}>
-       
+        <Tooltip title="Alarme">
         <Button shape="round" className="view_button" onClick={() =>{ showAlarme(record.id); handleSelectPatient(record);}}>
         <BellFilled />
         </Button>
+        </Tooltip>
         </Badge>
+        <Tooltip title="Măsurători">
         <Button shape="round" className="view_button" onClick={() =>{ showMasuratori(); handleSelectPatient(record);}}>
         <DashboardFilled />
         </Button>
+        </Tooltip>
+        <Tooltip title="ECG">
         <Button shape="round" className="view_button" onClick={() =>{ showECG(); handleSelectPatient(record);}}>
         <FundFilled />
         </Button>
+        </Tooltip>
         </Flex>
       ),
     },
@@ -127,17 +137,25 @@ const Pacienti: React.FC = () => {
       render: (record: Item) => (
        <Flex gap="small" vertical justify="center" align='center'>
         <Space direction="vertical">
+        <Tooltip title="Vizualizare">
         <Button shape="round" className="view_button" onClick={() =>{setSelectedPatient(record);
               setIsViewVisible(true);}}>
           <EyeFilled />
         </Button>
+        </Tooltip>
+        <Tooltip title="Rapoarte">
         <Button shape="round" className="view_button" onClick={() =>{setSelectedPatient(record); handleSelectPatient(record);
               showReport()}}>
           <FileTextFilled />
         </Button>
+        </Tooltip>
+        <Tooltip title="Modificare">
           <Button shape="round" onClick={() =>{ showModal(record);  setEditing(record);}} className='action_button' ><EditFilled /></Button>
+          </Tooltip>
           <Popconfirm title="Sunteţi sigur că vreţi să ştergeţi acest pacient?" onConfirm={() => handleDelete(record.id)} okText="Da" cancelText="Nu">
+          <Tooltip title="Ştergere">
             <Button shape="round"  className='action_button' ><DeleteFilled /></Button>
+            </Tooltip>
             </Popconfirm>
         </Space>
        </Flex>
@@ -1095,7 +1113,7 @@ const handleSalveazaLimite = async () => {
 <>
 
 
-      <Button shape="round" type="primary" htmlType="submit" onClick={() => { print(); }} className='to_hide'>
+      <Button shape="round" type="primary" htmlType="submit" onClick={() => { window.print(); }} className='to_hide'>
         Tipărire
       </Button>
       <Divider className='to_hide'/>
