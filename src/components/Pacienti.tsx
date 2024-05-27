@@ -665,7 +665,7 @@ const handleSalveazaLimite = async () => {
         <Table columns={columns} dataSource={dataSource} size="small" pagination={{ hideOnSinglePage: true }} rowKey="id" />
        
     <Modal
-        title={editing ? 'Editare fişă pacient' : 'Adăugare pacient'}
+        title={editing ? 'Modificare fişă pacient' : 'Adăugare pacient'}
         okText="Salvează"
         open={isModalVisible} 
         onCancel={handleCancel}
