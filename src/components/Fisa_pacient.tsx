@@ -4,6 +4,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
 import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection, onSnapshot  } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
 const { Title } = Typography;
@@ -147,7 +148,31 @@ const UserProfilePage: React.FC = () => {
     return <div>Loading...</div>;
   }
 
+  const formatLegend = (value: any) => {
+    switch (value) {
+      case 'puls':
+        return 'Puls';
+      case 'temp':
+        return 'Temperatură';
+      case 'umid':
+        return 'Umiditate';
+      default:
+        return value;
+    }
+  };
 
+  const formatTooltip = (value: any, name: any) => {
+    switch (name) {
+      case 'puls':
+        return [`${value} bpm`, 'Puls'];
+      case 'temp':
+        return [`${value} °C`, 'Temperatură'];
+      case 'umid':
+        return [`${value} %`, 'Umiditate'];
+      default:
+        return [value, name];
+    }
+  };
 
   return (
     <ConfigProvider
@@ -161,7 +186,7 @@ const UserProfilePage: React.FC = () => {
   >
     <div>
       <div className='back_button'>
-          <Button shape="round" type="primary" htmlType="submit" onClick={() => navigate('/home')}>
+          <Button shape="round" type="primary" htmlType="submit" className='to_hide' onClick={() => navigate('/home')}>
           Deconectare
           </Button>
           </div>
@@ -170,9 +195,17 @@ const UserProfilePage: React.FC = () => {
         <div className='fisa_pacient'>
           <Avatar size={64} icon={<UserOutlined />} className='avatar' />
           <Title level={4}>Profil medical - {userData.nume_prenume}<br/></Title>
+          
         </div>
+        
       </div>
+      
       <div className='fisa'>
+      <Button shape="round" type="primary" htmlType="submit" onClick={() => { window.print(); }} className='to_hide'>
+        Tipărire
+      </Button>
+      <br/>
+      <br/>
         <Space direction="vertical" size={10} >
          
         <div className='delimiter'>
@@ -216,26 +249,36 @@ const UserProfilePage: React.FC = () => {
   )}
 </div>
 <div className='delimiter'>
-        <Title level={4}>Măsurători</Title>
-
-
-        {ultimeleMasuratori.length === 0 ?  (
-    <Title level={5}>Nu există măsurători anterioare.</Title>
-  ) : ( 
-    ultimeleMasuratori.map((masuratori, index) => (
-      
-     
-<Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-  <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.puls}</Descriptions.Item>
-  <Descriptions.Item label="Temperatură" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.temp}</Descriptions.Item>
-  <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.umid}</Descriptions.Item>
-  <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
-</Descriptions>
-
-
-    ))
-  )}
-</div>
+              <Title level={4}>Măsurători</Title>
+              {ultimeleMasuratori.length === 0 ? (
+                <Title level={5}>Nu există măsurători anterioare.</Title>
+              ) : (
+                <>
+                <br/>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={ultimeleMasuratori}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      
+                      <YAxis />
+                      <Tooltip formatter={formatTooltip}/>
+                      <Legend formatter={formatLegend}  />
+                      <Line type="monotone" dataKey="puls" stroke="#8884d8" />
+                      <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
+                      <Line type="monotone" dataKey="umid" stroke="#ffc658" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <br/>
+                  {ultimeleMasuratori.map((masuratori, index) => (
+                    <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }}>
+                      <Descriptions.Item label="Puls" labelStyle={{ width: '20%' }} contentStyle={{ width: '20%' }}>{masuratori.puls}</Descriptions.Item>
+                      <Descriptions.Item label="Temperatură" span={2} labelStyle={{ width: '20%' }} contentStyle={{ width: '20%' }}>{masuratori.temp}</Descriptions.Item>
+                      <Descriptions.Item label="Umiditate" labelStyle={{ width: '20%' }} contentStyle={{ width: '20%' }}>{masuratori.umid}</Descriptions.Item>
+                      <Descriptions.Item label="Data și ora" span={2} labelStyle={{ width: '20%' }} contentStyle={{ width: '20%' }}>{masuratori.time_stamp}</Descriptions.Item>
+                    </Descriptions>
+                  ))}
+                </>
+              )}
+            </div>
 
 
 <div className='delimiter'>

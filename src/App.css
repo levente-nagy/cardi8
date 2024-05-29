@@ -108,6 +108,8 @@ h5, h4{
 .section-to-print {margin-top: -5rem !important; }
 .ant-modal-content{ box-shadow:none !important;}
 
-h5{break-after: always !important;}
- }
+.delimiter {
+  page-break-inside: avoid;
+}
 
+}
