@@ -1204,11 +1204,11 @@ const handleSalveazaLimite = async () => {
                   ) : (
                     ultimeleAlarme.map((alarme, index) => (
                       <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-                        <Descriptions.Item label="Tip"  labelStyle={{width: '20%'}} contentStyle={{width: '30%'}}>{alarme.tip}</Descriptions.Item>
-                        <Descriptions.Item label="Stare" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.stare}</Descriptions.Item>
-                        <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.descriere}</Descriptions.Item>
-                        <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.comentariu}</Descriptions.Item> 
-                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '20%'}}>{alarme.time_stamp}</Descriptions.Item>    
+                        <Descriptions.Item label="Tip" span={3}  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{alarme.tip}</Descriptions.Item>
+                        <Descriptions.Item label="Stare" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{alarme.stare}</Descriptions.Item>
+                        <Descriptions.Item label="Descriere"  span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{alarme.descriere}</Descriptions.Item>
+                        <Descriptions.Item label="Comentariu" span={3} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{alarme.comentariu}</Descriptions.Item> 
+                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{alarme.time_stamp}</Descriptions.Item>    
                       </Descriptions>
                     ))
                   )}
@@ -1231,10 +1231,10 @@ const handleSalveazaLimite = async () => {
                   ) : (
                     ultimeleMasuratori.map((masuratori, index) => (
                       <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-                        <Descriptions.Item label="Puls"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.puls}</Descriptions.Item>
-                        <Descriptions.Item label="Temperatură"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.temp}</Descriptions.Item>
-                        <Descriptions.Item label="Umiditate"  labelStyle={{width: '10%'}} contentStyle={{width: '20%'}} span={3}>{masuratori.umid}</Descriptions.Item>
-                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '10%'}} contentStyle={{width: '20%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+                        <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.puls}</Descriptions.Item>
+                        <Descriptions.Item label="Temperatură"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.temp}</Descriptions.Item>
+                        <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.umid}</Descriptions.Item>
+                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{masuratori.time_stamp}</Descriptions.Item>    
                       </Descriptions>
                     ))
                   )}

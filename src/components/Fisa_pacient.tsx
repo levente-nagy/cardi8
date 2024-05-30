@@ -192,7 +192,7 @@ const UserProfilePage: React.FC = () => {
           </div>
       <div className='header_fisa'>
         <img src="/banner_brand.png" className='banner_brand' alt="Brand Banner" />
-        <div className='fisa_pacient'>
+        <div className='fisa_pacient '>
           <Avatar size={64} icon={<UserOutlined />} className='avatar' />
           <Title level={4}>Profil medical - {userData.nume_prenume}<br/></Title>
           
