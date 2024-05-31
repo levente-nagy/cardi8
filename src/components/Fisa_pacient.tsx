@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Descriptions, Avatar, Button, ConfigProvider, Space } from 'antd';
+import { Typography, Descriptions, Avatar, Button, ConfigProvider } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
 import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection, onSnapshot  } from 'firebase/firestore';
