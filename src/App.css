@@ -62,6 +62,7 @@ h5, h4{
   border: 1px solid rgba(5, 5, 5, 0.06);
   border-radius: 8px;
   padding: 0.8rem;
+  margin: 0.8rem;
 }
 
 .back_button{
@@ -73,40 +74,26 @@ h5, h4{
   display: none;
 }
 
-@media print{
-  .to_hide{
-  display:none;
-  }
-  .ant-modal-close{
-    display:none;
-  }
-  .banner_print{
-    display: block;
-    
-  }
-  .banner_print_img{
-    width: 10rem;
-  }
+.print_button{
+  margin: 0.8rem;
 }
 
-  
-@media print { 
-  html {
-    overflow:   auto;
-    overflow-x: hidden;
+@media print{
+  .to_hide, .ant-modal-close {
+    display: none;
   }
-  
-  ::-webkit-scrollbar {
-      width: 0px;
-      background: transparent; 
+  .delimiter{
+    page-break-inside: avoid;
+
+  }
+  .recharts-default-legend{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
-  @page { margin: 0; size: A4;}
-  body { margin: 0; }
-  
 
-.section-to-print {margin-top: -5rem !important; }
-.ant-modal-content{ box-shadow:none !important;}
-
- }
-
+}

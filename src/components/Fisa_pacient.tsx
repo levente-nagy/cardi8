@@ -201,13 +201,13 @@ const UserProfilePage: React.FC = () => {
       </div>
       
       <div className='fisa'>
+    <div className='print_button'>
       <Button shape="round" type="primary" htmlType="submit" onClick={() => { window.print(); }} className='to_hide'>
         Tipărire
       </Button>
       <br/>
-      <br/>
-        <Space direction="vertical" size={10} >
-         
+      
+         </div>
         <div className='delimiter'>
         <Title level={4}>Date personale</Title>
         <Descriptions bordered size='small' style={{ marginBottom: '20px' }} >
@@ -305,7 +305,7 @@ const UserProfilePage: React.FC = () => {
   )}
 </div>
 
-        </Space>
+
       </div>
       
     </div>
