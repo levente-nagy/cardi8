@@ -86,14 +86,86 @@ h5, h4{
     page-break-inside: avoid;
 
   }
-  .recharts-default-legend{
-    display: flex;
-    flex-direction: column;
-    align-content: center;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
+
+
+  .banner_print{
+    display: block;
+  }
+  .banner_print_img{
+    width: 10rem;
   }
 
 
+  html {
+    overflow: scroll;
+    overflow-x: hidden;
 }
+
+
+::-webkit-scrollbar {
+    width: 0;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    width: 0;
+}
+
+
+}
+
+
+@media print {
+
+  
+  .section-to-print, .section-to-print * {
+    visibility: visible;
+  }
+
+  .section-to-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  .ant-descriptions{
+    page-break-inside: avoid;
+  }
+
+  .to_hide {
+    display: none;
+  }
+
+  .banner_print {
+    text-align: center;
+  }
+
+  .banner_print_img {
+    max-width: 100%;
+  }
+
+  .ant-modal {
+    position: static !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .ant-modal-content {
+    box-shadow: none;
+  }
+
+.ant-modal-content
+{
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.tooltip{
+  display: none;
+}
+
+
+}
+

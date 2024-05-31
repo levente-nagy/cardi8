@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Checkbox,  Typography } from 'antd';
 import type { GetProp } from 'antd';
-import { ResponsiveContainer, LineChart, CartesianGrid, YAxis, Legend, Line } from 'recharts';
+import { ResponsiveContainer, LineChart, CartesianGrid, YAxis, Legend, Line, XAxis } from 'recharts';
 import {Tooltip as RechartsTooltip} from 'recharts';
 
 const { Title } = Typography;
@@ -42,6 +42,7 @@ const Pacienti: React.FC = () => {
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
+  const [ecgData, setECGData] = useState<any[]>([]);
   const [badgeCounts, setBadgeCounts] = useState<{ [key: string]: number }>(() => {
     const savedBadgeCounts = localStorage.getItem('badgeCounts');
     return savedBadgeCounts ? JSON.parse(savedBadgeCounts) : {};
@@ -58,6 +59,7 @@ const Pacienti: React.FC = () => {
   const [showReportAlarme, setShowReportAlarme] = useState<boolean>(false);
   const [showReportMasuratori, setShowReportMasuratori] = useState<boolean>(false);
   const [showReportECG, setShowReportECG] = useState<boolean>(false);
+  const formattedECGData = ecgData.map((value, index) => ({ value, time: index }));
 
 
   const navigate = useNavigate();
@@ -398,6 +400,7 @@ const Pacienti: React.FC = () => {
     fetchUltimeleMasuratori(patient.id);
     fetchUltimeleAlarme(patient.id);
     setSelectedPatient(patient);
+    fetchECGData(patient.id);
   };
 
   const fetchUltimeleRecomandari = (patientId: string) => {
@@ -457,7 +460,22 @@ const Pacienti: React.FC = () => {
   };
 
 
-
+  const fetchECGData = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.ecg && patientData.ecg.data) {
+        const ecgDataArray = patientData.ecg.data;
+        setECGData(ecgDataArray);
+      } else {
+        setECGData([]);
+      }
+    }, (error) => {
+      console.error('Error fetching ECG data:', error);
+      setECGData([]);
+    });
+  };
 
   const handleSalveazaRecomandari = async () => {
     formRecomandari.validateFields().then(async (values) => {
@@ -661,6 +679,26 @@ const handleSalveazaLimite = async () => {
         return [`${value} %`, 'Umiditate'];
       default:
         return [value, name];
+    }
+  };
+
+  const handlePrint = () => {
+    const printSection = document.querySelector('.section-to-print') as HTMLElement;
+    const printWindow = window.open('', '_blank');
+  
+    if (printWindow && printSection) {
+      const nodeClone = printSection.cloneNode(true);
+      printWindow.document.body.appendChild(nodeClone);
+  
+      const head = document.head.cloneNode(true);
+      printWindow.document.head.appendChild(head as Node);
+  
+      printWindow.document.close();
+      printWindow.print();
+
+      setTimeout(() => {
+        printWindow.close();
+      }, 1000);
     }
   };
       
@@ -1005,17 +1043,28 @@ const handleSalveazaLimite = async () => {
         <Modal title="" open={isECGVisible} 
          okText="Salvează"
          onCancel={handleCancelECG}
-        
+        width={600}
          footer={null} >  
                {selectedPatient && (
    
    <Title level={5}>ECG - <b>{selectedPatient.nume_prenume}</b></Title>
    
  )}
-  <br/>
+
        <div className='delimiter'>  
-       
-       <div>Grafic ECG</div>
+       {formattedECGData.length === 0 ?  (
+    <Title level={5}>Nu există valori ECG anterioare.</Title>
+  ) : (      
+       <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={formattedECGData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
+        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} />
+        
+        <Line type="monotone" dataKey="value" stroke="#d80242" dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+      )}
        </div>  
          </Modal>      
 
@@ -1139,7 +1188,7 @@ const handleSalveazaLimite = async () => {
 <>
 
 
-      <Button shape="round" type="primary" htmlType="submit" onClick={() => { window.print(); }} className='to_hide'>
+      <Button shape="round" type="primary" htmlType="submit" onClick={handlePrint} className='to_hide'>
         Tipărire
       </Button>
       <Divider className='to_hide'/>
@@ -1155,7 +1204,7 @@ const handleSalveazaLimite = async () => {
 
 
 
-<Divider className='to_hide'/>
+<Divider />
 
 <Row className='to_hide'>
   <Col span={8}>
@@ -1165,7 +1214,7 @@ const handleSalveazaLimite = async () => {
   
       {showReportDetalii && (
         <>
-        <Divider />
+        <div className='delimiter'>
         <Title  level={5}>Detalii pacient</Title>
           
             <Descriptions bordered size='small'  >
@@ -1187,13 +1236,12 @@ const handleSalveazaLimite = async () => {
                 Consultații cardiologice: {selectedPatient?.consultatii}
               </Descriptions.Item>
             </Descriptions>
-      
+      </div>
         </>
       )}
       {showReportRecomandari && (
         <>
-         <Divider />
-          
+        <div className='delimiter'>
             <div>
             
         <Title  level={5}>Recomandări anterioare</Title>
@@ -1213,14 +1261,14 @@ const handleSalveazaLimite = async () => {
                 ))
               )}
             </div>
-          
+          </div>
         </>
       )}
       {showReportAlarme && (
         <>
          
             <>
-              <Divider />
+            <div className='delimiter'>
         <Title  level={5}>Alarme anterioare</Title>
               
            
@@ -1239,7 +1287,7 @@ const handleSalveazaLimite = async () => {
                     ))
                   )}
                 </div>
-             
+             </div>
             </>
        
         </>
@@ -1248,50 +1296,65 @@ const handleSalveazaLimite = async () => {
         <>
           {selectedPatient && (
             <>
-              <Divider />
-        <Title  level={5}>Măsurători anterioare</Title>
-        <br/>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={ultimeleMasuratori}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      
-                      <YAxis />
-                      <RechartsTooltip formatter={formatTooltip}/>
-                      <Legend formatter={formatLegend}  />
-                      <Line type="monotone" dataKey="puls" stroke="#8884d8" />
-                      <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
-                      <Line type="monotone" dataKey="umid" stroke="#ffc658" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <br/>
+           <div className='delimiter'>
+            <Title level={5}>Măsurători anterioare</Title>
+            <br/>
+            {ultimeleMasuratori.length !== 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={ultimeleMasuratori}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <YAxis />
+                    <RechartsTooltip formatter={formatTooltip} wrapperClassName='tooltip' labelFormatter={() => ""} />
+                    <Legend formatter={formatLegend}  />
+                    <Line type="monotone" dataKey="puls" stroke="#8884d8" />
+                    <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
+                    <Line type="monotone" dataKey="umid" stroke="#ffc658" />
+                  </LineChart>
+                </ResponsiveContainer>
+                <br/>
+                <br/>
                 <div>
-                  {ultimeleMasuratori.length === 0 ? (
-                    <p>Nu există măsurători anterioare.</p>
-                  ) : (
-                    ultimeleMasuratori.map((masuratori, index) => (
-                      <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
-                        <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.puls}</Descriptions.Item>
-                        <Descriptions.Item label="Temperatură"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.temp}</Descriptions.Item>
-                        <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.umid}</Descriptions.Item>
-                        <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{masuratori.time_stamp}</Descriptions.Item>    
-                      </Descriptions>
-                    ))
-                  )}
+                  {ultimeleMasuratori.map((masuratori, index) => (
+                    <Descriptions bordered key={index} size='small' style={{ marginBottom: '20px' }} >
+                      <Descriptions.Item label="Puls"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.puls}</Descriptions.Item>
+                      <Descriptions.Item label="Temperatură"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.temp}</Descriptions.Item>
+                      <Descriptions.Item label="Umiditate"  labelStyle={{width: '20%'}} contentStyle={{width: '50%'}} span={3}>{masuratori.umid}</Descriptions.Item>
+                      <Descriptions.Item label="Data și ora" span={2} labelStyle={{width: '20%'}} contentStyle={{width: '50%'}}>{masuratori.time_stamp}</Descriptions.Item>    
+                    </Descriptions>
+                  ))}
                 </div>
-              
-            </>
+              </>
+            ) : (
+              <p>Nu există măsurători anterioare.</p>
+            )}
+            </div>
+          </>
           )}
+          
         </>
       )}
       {showReportECG && (
         <>
          
             <>
-                       <Divider />
+            <div className='delimiter'>
         <Title  level={5}>Grafic ECG</Title>
               
-                <div>Grafic ECG</div>
-             
+        {formattedECGData.length === 0 ?  (
+    <Title level={5}>Nu există valori ECG anterioare.</Title>
+  ) : (      
+       <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={formattedECGData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
+        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} />
+       
+        <Line type="monotone" dataKey="value" stroke="#d80242" dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+      )}
+             </div>
               </>
             
         </>

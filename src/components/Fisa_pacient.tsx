@@ -4,7 +4,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { db,  auth  } from './Firebase'
 import { doc, getDoc, DocumentReference, DocumentData, getDocs, where, query, collection, onSnapshot  } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, XAxis } from 'recharts';
 
 
 const { Title } = Typography;
@@ -15,6 +15,8 @@ const UserProfilePage: React.FC = () => {
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
+  const [ecgData, setECGData] = useState<any[]>([]);
+  const formattedECGData = ecgData.map((value, index) => ({ value, time: index }));
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -84,6 +86,23 @@ const UserProfilePage: React.FC = () => {
     });
   };
 
+  const fetchECGData = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.ecg && patientData.ecg.data) {
+        const ecgDataArray = patientData.ecg.data;
+        setECGData(ecgDataArray);
+      } else {
+        setECGData([]);
+      }
+    }, (error) => {
+      console.error('Error fetching ECG data:', error);
+      setECGData([]);
+    });
+  };
+
   
   const fetchUserData = async (userId: string) => {
     try {
@@ -95,6 +114,7 @@ const UserProfilePage: React.FC = () => {
         fetchUltimeleRecomandari(userId);
         fetchUltimeleMasuratori(userId);
         fetchUltimeleAlarme(userId);
+        fetchECGData(userId);
   
         if (userData.medic_id) {
           const medicName = await fetchMedicName(userData.medic_id);
@@ -260,7 +280,7 @@ const UserProfilePage: React.FC = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       
                       <YAxis />
-                      <Tooltip formatter={formatTooltip}/>
+                      <Tooltip formatter={formatTooltip} labelFormatter={() => ""}/>
                       <Legend formatter={formatLegend}  />
                       <Line type="monotone" dataKey="puls" stroke="#8884d8" />
                       <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
@@ -304,6 +324,25 @@ const UserProfilePage: React.FC = () => {
     ))
   )}
 </div>
+
+<div className='delimiter'>  
+
+<Title level={4}>ECG</Title>
+
+       {formattedECGData.length === 0 ?  (
+    <Title level={5}>Nu există valori ECG anterioare.</Title>
+  ) : (      
+       <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={formattedECGData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
+        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} />
+       
+        <Line type="monotone" dataKey="value" stroke="#d80242" dot={false} />
+      </LineChart>
+    </ResponsiveContainer>
+      )}
+       </div>  
 
 
       </div>
