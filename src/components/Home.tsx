@@ -18,12 +18,12 @@ const Home: React.FC = () => {
      <img src="/banner_home.png" className='banner' />
      <Link to="/login_medic">
      <Button className='login_button' shape="round" type="primary" size="large">
-          Autentificare ca medic
+          Autentificare medic
      </Button>
      </Link>
      <Link to="/login_pacient">
      <Button className='login_button' shape="round" type="primary" size="large">
-          Autentificare ca pacient
+          Autentificare pacient
      </Button>
      </Link>
      </Flex>

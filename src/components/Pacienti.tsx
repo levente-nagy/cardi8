@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Checkbox,  Typography } from 'antd';
 import type { GetProp } from 'antd';
+import { ResponsiveContainer, LineChart, CartesianGrid, YAxis, Legend, Line } from 'recharts';
+import {Tooltip as RechartsTooltip} from 'recharts';
 
 const { Title } = Typography;
 
@@ -636,7 +638,31 @@ const handleSalveazaLimite = async () => {
     setAdaugaLimiteVisible(true);
   };
 
+  const formatLegend = (value: any) => {
+    switch (value) {
+      case 'puls':
+        return 'Puls';
+      case 'temp':
+        return 'Temperatură';
+      case 'umid':
+        return 'Umiditate';
+      default:
+        return value;
+    }
+  };
 
+  const formatTooltip = (value: any, name: any) => {
+    switch (name) {
+      case 'puls':
+        return [`${value} bpm`, 'Puls'];
+      case 'temp':
+        return [`${value} °C`, 'Temperatură'];
+      case 'umid':
+        return [`${value} %`, 'Umiditate'];
+      default:
+        return [value, name];
+    }
+  };
       
   return (
     <>
@@ -950,7 +976,7 @@ const handleSalveazaLimite = async () => {
  <br/>
       <div className='delimiter'>
       <div>
-
+     
 
 
   {ultimeleMasuratori.length === 0 ?  (
@@ -1224,7 +1250,20 @@ const handleSalveazaLimite = async () => {
             <>
               <Divider />
         <Title  level={5}>Măsurători anterioare</Title>
-              
+        <br/>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={ultimeleMasuratori}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      
+                      <YAxis />
+                      <RechartsTooltip formatter={formatTooltip}/>
+                      <Legend formatter={formatLegend}  />
+                      <Line type="monotone" dataKey="puls" stroke="#8884d8" />
+                      <Line type="monotone" dataKey="temp" stroke="#82ca9d" />
+                      <Line type="monotone" dataKey="umid" stroke="#ffc658" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <br/>
                 <div>
                   {ultimeleMasuratori.length === 0 ? (
                     <p>Nu există măsurători anterioare.</p>
