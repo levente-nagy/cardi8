@@ -863,20 +863,23 @@ const handleSalveazaLimite = async () => {
     <Modal title="" open={isAdaugaLimiteVisible} 
          okText="Salvează"
          onCancel={handleCancelAdaugaLimite}
-        
+        width={600}
          footer={null} >  
           <>
          {selectedPatient && (
    
           <Title level={5}>Adăugare limite - <b>{selectedPatient.nume_prenume}</b></Title>
         )}
+
+
+
 {limite.filter(([,value]) => value !== null && value !== '').length > 0 && (
     <div className='delimiter'>   
         <Title level={5}>Limite anterioare</Title>
         {['repaus', 'miscare'].map(condition => {
             const conditionLimits = limite.filter(([key, value]) => value !== null && value !== '' && key.includes(condition));
             if (conditionLimits.length === 0) {
-                return null; // Don't render anything if there are no limits for this condition
+                return null; 
             }
             let title = condition.charAt(0).toUpperCase() + condition.slice(1);
             if (condition === 'miscare') {
@@ -884,30 +887,33 @@ const handleSalveazaLimite = async () => {
             }
             return (
                 <div key={condition}>
+                  <br/>
                     <Title level={5}>{title}</Title>
-                    {conditionLimits
-                        .sort((a, b) => {
-                            const keyA = a[0].includes('max') ? a[0].replace('max', 'min') : a[0].replace('min', 'max');
-                            const keyB = b[0].includes('max') ? b[0].replace('max', 'min') : b[0].replace('min', 'max');
-                            return keyA.localeCompare(keyB);
-                        })
-                        .map(([key, value]) => {
-                            let formattedKey = key.replace('_', ' ');
+                    <Descriptions column={2} bordered size='small'>
+                        {conditionLimits
+                            .sort((a, b) => {
+                                const keyA = a[0].includes('max') ? a[0].replace('max', 'min') : a[0].replace('min', 'max');
+                                const keyB = b[0].includes('max') ? b[0].replace('max', 'min') : b[0].replace('min', 'max');
+                                return keyA.localeCompare(keyB);
+                            })
+                            .map(([key, value]) => {
+                                let formattedKey = key.replace('_', ' ');
 
-                            formattedKey = formattedKey.replace('repaus','');
-                            formattedKey = formattedKey.replace('miscare','');
-                            formattedKey = formattedKey.replace('max', 'maxim');
-                            formattedKey = formattedKey.replace('min', 'minim');
-                            formattedKey = formattedKey.replace(/temp/i, 'Temperatură');
-                            formattedKey = formattedKey.replace(/umid/i, 'Umiditate');
-                            formattedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
-                            formattedKey = formattedKey.replace('_', ' ');
-                    
-                            return (
-                                <p key={key}>{formattedKey}: {value}</p>
-                            );
-                        })
-                    }
+                                formattedKey = formattedKey.replace('repaus','');
+                                formattedKey = formattedKey.replace('miscare','');
+                                formattedKey = formattedKey.replace('max', 'maxim');
+                                formattedKey = formattedKey.replace('min', 'minim');
+                                formattedKey = formattedKey.replace(/temp/i, 'Temperatură');
+                                formattedKey = formattedKey.replace(/umid/i, 'Umiditate');
+                                formattedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
+                                formattedKey = formattedKey.replace('_', ' ');
+                        
+                                return (
+                                    <Descriptions.Item label={formattedKey} key={key}>{value}</Descriptions.Item>
+                                );
+                            })
+                        }
+                    </Descriptions>
                 </div>
             );
         })}
