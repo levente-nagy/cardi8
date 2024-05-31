@@ -42,6 +42,7 @@ const Pacienti: React.FC = () => {
   const [ultimeleRecomandari, setUltimeleRecomandari] = useState<any[]>([]);
   const [ultimeleMasuratori, setUltimeleMasuratori] = useState<any[]>([]);
   const [ultimeleAlarme, setUltimeleAlarme] = useState<any[]>([]);
+  const [limite, setLimite] = useState<any[]>([]);
   const [ecgData, setECGData] = useState<any[]>([]);
   const [badgeCounts, setBadgeCounts] = useState<{ [key: string]: number }>(() => {
     const savedBadgeCounts = localStorage.getItem('badgeCounts');
@@ -401,6 +402,7 @@ const Pacienti: React.FC = () => {
     fetchUltimeleAlarme(patient.id);
     setSelectedPatient(patient);
     fetchECGData(patient.id);
+    fetchLimite(patient.id);
   };
 
   const fetchUltimeleRecomandari = (patientId: string) => {
@@ -474,6 +476,23 @@ const Pacienti: React.FC = () => {
     }, (error) => {
       console.error('Error fetching ECG data:', error);
       setECGData([]);
+    });
+  };
+
+  const fetchLimite = (patientId: string) => {
+    const patientDocRef = doc(db, 'pacienti', patientId);
+  
+    onSnapshot(patientDocRef, (snapshot) => {
+      const patientData = snapshot.data();
+      if (patientData && patientData.limite_medic) {
+        const limiteArray = Object.entries(patientData.limite_medic);
+        setLimite(limiteArray);
+      } else {
+        setLimite([]);
+      }
+    }, (error) => {
+      console.error('Error fetching limite:', error);
+      setLimite([]);
     });
   };
 
@@ -701,6 +720,8 @@ const handleSalveazaLimite = async () => {
       }, 1000);
     }
   };
+
+
       
   return (
     <>
@@ -849,7 +870,52 @@ const handleSalveazaLimite = async () => {
    
           <Title level={5}>Adăugare limite - <b>{selectedPatient.nume_prenume}</b></Title>
         )}
-        <br/>
+{limite.filter(([,value]) => value !== null && value !== '').length > 0 && (
+    <div className='delimiter'>   
+        <Title level={5}>Limite anterioare</Title>
+        {['repaus', 'miscare'].map(condition => {
+            const conditionLimits = limite.filter(([key, value]) => value !== null && value !== '' && key.includes(condition));
+            if (conditionLimits.length === 0) {
+                return null; // Don't render anything if there are no limits for this condition
+            }
+            let title = condition.charAt(0).toUpperCase() + condition.slice(1);
+            if (condition === 'miscare') {
+                title = 'Mișcare';
+            }
+            return (
+                <div key={condition}>
+                    <Title level={5}>{title}</Title>
+                    {conditionLimits
+                        .sort((a, b) => {
+                            const keyA = a[0].includes('max') ? a[0].replace('max', 'min') : a[0].replace('min', 'max');
+                            const keyB = b[0].includes('max') ? b[0].replace('max', 'min') : b[0].replace('min', 'max');
+                            return keyA.localeCompare(keyB);
+                        })
+                        .map(([key, value]) => {
+                            let formattedKey = key.replace('_', ' ');
+
+                            formattedKey = formattedKey.replace('repaus','');
+                            formattedKey = formattedKey.replace('miscare','');
+                            formattedKey = formattedKey.replace('max', 'maxim');
+                            formattedKey = formattedKey.replace('min', 'minim');
+                            formattedKey = formattedKey.replace(/temp/i, 'Temperatură');
+                            formattedKey = formattedKey.replace(/umid/i, 'Umiditate');
+                            formattedKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
+                            formattedKey = formattedKey.replace('_', ' ');
+                    
+                            return (
+                                <p key={key}>{formattedKey}: {value}</p>
+                            );
+                        })
+                    }
+                </div>
+            );
+        })}
+    </div>
+)}
+        
+        
+
           <Form form={formLimite}  autoComplete='off'>
         <div className='delimiter'>
         <Title level={5}>Limite repaus</Title>
@@ -899,7 +965,7 @@ const handleSalveazaLimite = async () => {
         </Col>
         </Row>
         </div>  
-        <br/>
+     
         <div className='delimiter'>
         <Title level={5}>Limite mișcare</Title>
         <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }} align="top"> 
