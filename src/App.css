@@ -75,54 +75,45 @@ h5, h4{
 .print_button{
   margin: 0.8rem;
 }
-
 @media screen {
   .banner_print {
     display: none !important;
   }
 }
 
-@media print{
+@media print {
   .to_hide, .ant-modal-close {
     display: none !important;
   }
-  .delimiter{
+
+  .delimiter, .ant-descriptions {
     page-break-inside: avoid !important;
-
   }
 
-
-  .banner_print{
+  .banner_print {
     display: block !important;
-  }
-  
-  .banner_print_img{
-    width: 10rem !important;
+    text-align: center !important;
   }
 
+  .banner_print_img {
+    width: 10rem !important;
+    max-width: 100% !important;
+  }
 
   html {
     overflow: scroll !important;
     overflow-x: hidden !important;
-}
+  }
 
-
-::-webkit-scrollbar {
-    width: 0 !important;  
-    background: transparent !important;  
-}
-
-::-webkit-scrollbar-thumb {
+  ::-webkit-scrollbar {
     width: 0 !important;
-}
+    background: transparent !important;
+  }
 
+  ::-webkit-scrollbar-thumb {
+    width: 0 !important;
+  }
 
-}
-
-
-@media print {
-
-  
   .section-to-print, .section-to-print * {
     visibility: visible !important;
   }
@@ -135,22 +126,6 @@ h5, h4{
     page-break-inside: avoid !important;
   }
 
-  .ant-descriptions{
-    page-break-inside: avoid !important;
-  }
-
-  .to_hide {
-    display: none !important;
-  }
-
-  .banner_print {
-    text-align: center !important;
-  }
-
-  .banner_print_img {
-    max-width: 100% !important;
-  }
-
   .ant-modal {
     position: static !important;
     overflow: visible !important;
@@ -159,18 +134,12 @@ h5, h4{
 
   .ant-modal-content {
     box-shadow: none !important;
+    padding: 0 !important;
   }
 
-.ant-modal-content
-{
-  box-shadow: none !important;
-  padding: 0 !important;
+  .tooltip {
+    display: none !important;
+  }
 }
 
-.tooltip{
-  display: none !important;
-}
-
-
-}
 
