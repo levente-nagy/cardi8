@@ -339,7 +339,7 @@ const Pacienti: React.FC = () => {
 
 
 
-  const handleOk = async () => {
+  const handlePacient = async () => {
     formDatePacient.validateFields().then(async (values) => {
       console.log("Submitted values:", values);
 
@@ -852,7 +852,7 @@ const handleSalveazaLimite = async () => {
 
     
       <Form.Item>
-        <Button className="salvare_pacient" shape="round" type="primary" htmlType="submit"  onClick={handleOk} >
+        <Button className="salvare_pacient" shape="round" type="primary" htmlType="submit"  onClick={handlePacient} >
           Salvează
         </Button>
       </Form.Item>
