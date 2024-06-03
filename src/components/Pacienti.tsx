@@ -535,17 +535,15 @@ const Pacienti: React.FC = () => {
       }
     });
 };
+
 const handleSalveazaLimite = async () => {
   formLimite.validateFields().then(async (values) => {
-
     if (!selectedPatient) {
       console.error("No patient selected.");
       return;
     }
-
     try {
       const patientDocRef = doc(db, "pacienti", selectedPatient.id);
-
       const newLimite = {
         puls_min_repaus: values.puls_min_repaus || "",
         puls_max_repaus: values.puls_max_repaus || "",
@@ -560,14 +558,10 @@ const handleSalveazaLimite = async () => {
         umid_min_miscare: values.umid_min_miscare || "",
         umid_max_miscare: values.umid_max_miscare || "",
       };
-      
       const updatedValues = {
         limite_medic: newLimite
       };
-      
       await updateDoc(patientDocRef, updatedValues);
-
-      console.log("Limite added successfully.");
       setAdaugaLimiteVisible(false);
       formLimite.resetFields();
     } catch (error) {
