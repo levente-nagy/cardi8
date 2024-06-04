@@ -703,18 +703,90 @@ const handleSalveazaLimite = async () => {
       const nodeClone = printSection.cloneNode(true);
       printWindow.document.body.appendChild(nodeClone);
   
-      const head = document.head.cloneNode(true);
-      printWindow.document.head.appendChild(head as Node);
+      const styles = `
+        
+@media screen {
+  .banner_print {
+    display: none !important;
+  }
+}
+
+@media print {
+  .to_hide, .ant-modal-close {
+    display: none !important;
+  }
+
+  .delimiter, .ant-descriptions {
+    page-break-inside: avoid !important;
+  }
+
+  .banner_print {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .banner_print_img {
+    width: 10rem !important;
+    max-width: 100% !important;
+  }
+
+  html {
+    overflow: scroll !important;
+    overflow-x: hidden !important;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0 !important;
+    background: transparent !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    width: 0 !important;
+  }
+
+  .section-to-print, .section-to-print * {
+    visibility: visible !important;
+  }
+
+  .section-to-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
+  }
+
+  .ant-modal {
+    position: static !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .ant-modal-content {
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .tooltip {
+    display: none !important;
+  }
+}
+
+
+      `;
+  
+      const styleElement = document.createElement('style');
+      styleElement.innerHTML = styles;
+      printWindow.document.head.appendChild(styleElement);
   
       printWindow.document.close();
       printWindow.print();
-
+  
       setTimeout(() => {
         printWindow.close();
       }, 1000);
     }
   };
-
 
       
   return (
