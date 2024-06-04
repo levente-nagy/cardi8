@@ -698,95 +698,109 @@ const handleSalveazaLimite = async () => {
   const handlePrint = () => {
     const printSection = document.querySelector('.section-to-print') as HTMLElement;
     const bannerPrint = document.querySelector('.banner_print') as HTMLElement;
-    const printWindow = window.open('', '_blank');
-
+  
     if (bannerPrint) {
       bannerPrint.style.display = 'block';
     }
   
-    if (printWindow && printSection) {
-      const nodeClone = printSection.cloneNode(true);
-      printWindow.document.body.appendChild(nodeClone);
+    if (printSection) {
+      const nodeClone = printSection.cloneNode(true) as HTMLElement;
   
-      const head = document.head.cloneNode(true);
-      printWindow.document.head.appendChild(head as Node);
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.body.appendChild(nodeClone);
   
-      const extraStyles = `
-      .to_hide, .ant-modal-close {
-        display: none !important;
-      }
-    
-      .delimiter, .ant-descriptions {
-        page-break-inside: avoid !important;
-      }
-    
-      .banner_print {
-        display: block !important;
-        text-align: center !important;
-      }
-    
-      .banner_print_img {
-        width: 10rem !important;
-        max-width: 100% !important;
-      }
-    
-      html {
-        overflow: scroll !important;
-        overflow-x: hidden !important;
-      }
-    
-      ::-webkit-scrollbar {
-        width: 0 !important;
-        background: transparent !important;
-      }
-    
-      ::-webkit-scrollbar-thumb {
-        width: 0 !important;
-      }
-    
-      .section-to-print, .section-to-print * {
-        visibility: visible !important;
-      }
-    
-      .section-to-print {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        page-break-inside: avoid !important;
-      }
-    
-      .ant-modal {
-        position: static !important;
-        overflow: visible !important;
-        max-height: none !important;
-      }
-    
-      .ant-modal-content {
-        box-shadow: none !important;
-        padding: 0 !important;
-      }
-    
-      .tooltip {
-        display: none !important;
-      }
-      `;
+        const head = document.head.cloneNode(true);
+        printWindow.document.head.appendChild(head as Node);
   
-      const styleElement = document.createElement('style');
-      styleElement.innerHTML = extraStyles;
-      printWindow.document.head.appendChild(styleElement);
-  
-      printWindow.document.close();
-      printWindow.print();
-  
-      setTimeout(() => {
-        if (bannerPrint) {
-          bannerPrint.style.display = 'none';
+        const extraStyles = `
+        .to_hide, .ant-modal-close {
+          display: none !important;
         }
-        printWindow.close();
-      }, 1000);
-    };
-  }
+      
+        .delimiter, .ant-descriptions {
+          page-break-inside: avoid !important;
+        }
+      
+        .banner_print {
+          display: block !important;
+          text-align: center !important;
+        }
+      
+        .banner_print_img {
+          width: 10rem !important;
+          max-width: 100% !important;
+        }
+      
+        html {
+          overflow: scroll !important;
+          overflow-x: hidden !important;
+        }
+      
+        ::-webkit-scrollbar {
+          width: 0 !important;
+          background: transparent !important;
+        }
+      
+        ::-webkit-scrollbar-thumb {
+          width: 0 !important;
+        }
+      
+        .section-to-print, .section-to-print * {
+          visibility: visible !important;
+        }
+      
+        .section-to-print {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          page-break-inside: avoid !important;
+        }
+      
+        .ant-modal {
+          position: static !important;
+          overflow: visible !important;
+          max-height: none !important;
+        }
+      
+        .ant-modal-content {
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+      
+        .tooltip {
+          display: none !important;
+        }
+        `;
+    
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = extraStyles;
+        printWindow.document.head.appendChild(styleElement);
+
+        // Ensure styles are applied before printing
+        printWindow.document.head.appendChild(styleElement);
+        printWindow.document.body.appendChild(nodeClone);
+        printWindow.document.close();
+
+        // Force reflow to ensure styles are applied
+        printWindow.document.body.offsetHeight;
+
+        // Print and close after styles are applied
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      }
+    }
+  
+    if (bannerPrint) {
+      bannerPrint.style.display = 'none';
+    }
+};
+
+
+  
 
       
   return (
