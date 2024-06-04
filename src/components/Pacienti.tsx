@@ -694,9 +694,15 @@ const handleSalveazaLimite = async () => {
         return [value, name];
     }
   };
+
   const handlePrint = () => {
     const printSection = document.querySelector('.section-to-print') as HTMLElement;
+    const bannerPrint = document.querySelector('.banner_print') as HTMLElement;
     const printWindow = window.open('', '_blank');
+
+    if (bannerPrint) {
+      bannerPrint.style.display = 'block';
+    }
   
     if (printWindow && printSection) {
       const nodeClone = printSection.cloneNode(true);
@@ -774,10 +780,13 @@ const handleSalveazaLimite = async () => {
       printWindow.print();
   
       setTimeout(() => {
+        if (bannerPrint) {
+          bannerPrint.style.display = 'none';
+        }
         printWindow.close();
       }, 1000);
-    }
-  };
+    };
+  }
 
       
   return (
