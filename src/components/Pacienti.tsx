@@ -705,13 +705,7 @@ const handleSalveazaLimite = async () => {
   
       const styles = `
         
-@media screen {
-  .banner_print {
-    display: none !important;
-  }
-}
 
-@media print {
   .to_hide, .ant-modal-close {
     display: none !important;
   }
@@ -770,7 +764,7 @@ const handleSalveazaLimite = async () => {
   .tooltip {
     display: none !important;
   }
-}
+
 
 
       `;
