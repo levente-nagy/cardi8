@@ -75,6 +75,8 @@ h5, h4{
 .print_button{
   margin: 0.8rem;
 }
+
+
 @media screen {
   .banner_print {
     display: none !important;
