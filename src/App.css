@@ -76,6 +76,11 @@ h5, h4{
   margin: 0.8rem;
 }
 
+.ant-input-number-handler-wrap{
+  display: none !important;
+
+}
+
 
 @media screen {
   .banner_print {
