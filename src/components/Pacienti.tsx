@@ -67,7 +67,7 @@ const Pacienti: React.FC = () => {
   
   const columns = [
     
-    { title: 'Nume', dataIndex: 'nume_prenume', render: (_text: string, record: Item) => (
+    { title: 'Nume', dataIndex: 'nume_prenume', sorter: (a: Item, b: Item) => a.nume_prenume.localeCompare(b.nume_prenume), render: (_text: string, record: Item) => (
       <span>{record.nume_prenume}</span>
     )},
     { title: 'Vârstă', dataIndex: 'varsta' },
