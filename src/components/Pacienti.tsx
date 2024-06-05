@@ -568,45 +568,24 @@ const handleSalveazaLimite = async () => {
 
 
 
-const handleDelete = async (id: string) => {
-  try {
-    // Check if the patient document exists
-    const patientDocRef = doc(db, "pacienti", id);
-    const patientDoc = await getDoc(patientDocRef);
-    if (!patientDoc.exists()) {
-      console.error("Patient document does not exist.");
-      return;
-    }
-
-    // Delete the patient document
-    await deleteDoc(patientDocRef);
-    console.log(`Patient with id ${id} deleted successfully.`);
-
-    // Check if a user is logged in
-    if (loggedInUserId) {
-      const medicDocRef = doc(db, "medici", loggedInUserId);
-      const medicDoc = await getDoc(medicDocRef);
-      
-      if (medicDoc.exists()) {
-        // Update the medic document
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "pacienti", id));
+  
+      if (loggedInUserId) {
+        const medicDocRef = doc(db, "medici", loggedInUserId);
         await updateDoc(medicDocRef, {
           pacienti: arrayRemove(id)
         });
-        console.log(`Patient id ${id} removed from medic's list.`);
       } else {
-        console.error('Medic document does not exist.');
+        console.error('No user logged in.');
       }
-    } else {
-      console.error('No user logged in.');
+  
+      setDataSource(prevDataSource => prevDataSource.filter(patient => patient.id !== id));
+    } catch(error) {
+      console.error("Error deleting patient:", error);
     }
-
-    // Update the local data source
-    setDataSource(prevDataSource => prevDataSource.filter(patient => patient.id !== id));
-  } catch (error) {
-    console.error("Error deleting patient:", error);
-  }
-};
-
+  };
 
   const handleCancel = () => {
     setIsModalVisible(false);
