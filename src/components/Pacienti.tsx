@@ -1,5 +1,5 @@
 import  { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
+import { updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
 import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col, Divider, Tooltip } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled, FileTextFilled} from '@ant-design/icons';
@@ -297,22 +297,21 @@ const Pacienti: React.FC = () => {
 
 
 
-
   const addPatient = async (patientData: Item) => {
     try {
       const medic_id = loggedInUserId;
       const userCredential = await createUser(patientData.email, '123456');
-  
+    
       if (userCredential) {
         const patientUid = userCredential.user.uid;
-  
+    
         await setDoc(doc(db, "pacienti", patientUid), {
           ...patientData,
           medic_id: medic_id 
         });
-  
+    
         console.log('Patient added:', patientData);
-  
+    
         if (medic_id) { 
           const medicDocRef = doc(db, "medici", medic_id);
           await updateDoc(medicDocRef, {
@@ -321,14 +320,13 @@ const Pacienti: React.FC = () => {
         } else {
           console.error('No user logged in.');
         }
-  
+    
         if (medic_id && patientData.medic_id === medic_id) {
           setDataSource(prevDataSource => {
             const newDataSource = [...prevDataSource, { ...patientData, id: patientUid }];
-              return newDataSource.filter(patient => patient.medic_id === medic_id);
+            return newDataSource;
           });
         }
-        
       } else {
         console.error('No user created.');
       }
@@ -336,15 +334,14 @@ const Pacienti: React.FC = () => {
       console.error('Error creating user:', error);
     }
   };
-
-
-
+  
+  
   const handlePacient = async () => {
     formDatePacient.validateFields().then(async (values) => {
       console.log("Submitted values:", values);
-
+  
       const processedValues: Partial<Item> = { ...values };
-
+  
       const numePrenume = `${values.nume} ${values.prenume}`;
       processedValues.nume_prenume = numePrenume;
       delete processedValues.nume;
@@ -364,7 +361,7 @@ const Pacienti: React.FC = () => {
       if (values.apartament) {
         adresa += `, Ap. ${values.apartament}`;
       }
-
+  
       adresa += `, Cod poștal: ${values.codPostal}, Loc. ${values.oras}, Jud. ${values.judet}`;
       processedValues.adresa = adresa;
       delete processedValues.strada;
@@ -378,6 +375,7 @@ const Pacienti: React.FC = () => {
   
       if (editing) {
         await updateDoc(doc(db, "pacienti", editing.id), processedValues);
+        setDataSource(prevDataSource => prevDataSource.map(patient => patient.id === editing.id ? { ...patient, ...processedValues } : patient));
       } else {
         await addPatient(processedValues as Item); 
       }
@@ -385,16 +383,9 @@ const Pacienti: React.FC = () => {
       setIsModalVisible(false);
       setEditing(null);
       formDatePacient.resetFields();
-  
-      const data = await getDocs(collection(db, "pacienti"));
-      const filteredData = data.docs
-        .map((doc) => ({ ...doc.data(), id: doc.id }) as Item)
-        .filter((patient) => patient.medic_id === loggedInUserId);
-  
-      setDataSource(filteredData);
     });
   };
-
+  
 
   const handleSelectPatient = (patient: Item) => {
     fetchUltimeleRecomandari(patient.id);
