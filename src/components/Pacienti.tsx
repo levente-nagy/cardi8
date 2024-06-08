@@ -1,5 +1,5 @@
 import  { useState, useEffect } from 'react';
-import { updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, deleteDoc, setDoc, arrayUnion, arrayRemove, getDoc, onSnapshot } from 'firebase/firestore';
 import { db,  createUser, auth  } from './Firebase'
 import { Table, Button, Space, Modal, ConfigProvider, Form, Input, InputNumber, Popconfirm, Descriptions, Badge, Flex, Row, Col, Divider, Tooltip } from 'antd';
 import { EditFilled, DeleteFilled, EyeFilled, UnorderedListOutlined, BellFilled, ControlFilled, DashboardFilled, FundFilled, FileTextFilled} from '@ant-design/icons';
@@ -67,19 +67,9 @@ const Pacienti: React.FC = () => {
   
   const columns = [
     
-    {
-      title: 'Nume',
-      dataIndex: 'nume_prenume',
-      sorter: (a: Item, b: Item) => {
-        if (!a.nume_prenume || !b.nume_prenume) {
-          return 0;
-        }
-        return a.nume_prenume.localeCompare(b.nume_prenume);
-      },
-      defaultSortOrder: 'ascend' as 'ascend' | 'descend' | null,
-      render: (_text: string, record: Item) => <span>{record.nume_prenume}</span>,
-    },
-    
+    { title: 'Nume', dataIndex: 'nume_prenume', render: (_text: string, record: Item) => (
+      <span>{record.nume_prenume}</span>
+    )},
     { title: 'Vârstă', dataIndex: 'varsta' },
 
     { title: 'Profesie', dataIndex: 'profesie', render: (_text: string, record: Item) => (
@@ -307,21 +297,22 @@ const Pacienti: React.FC = () => {
 
 
 
+
   const addPatient = async (patientData: Item) => {
     try {
       const medic_id = loggedInUserId;
       const userCredential = await createUser(patientData.email, '123456');
-    
+  
       if (userCredential) {
         const patientUid = userCredential.user.uid;
-    
+  
         await setDoc(doc(db, "pacienti", patientUid), {
           ...patientData,
           medic_id: medic_id 
         });
-    
+  
         console.log('Patient added:', patientData);
-    
+  
         if (medic_id) { 
           const medicDocRef = doc(db, "medici", medic_id);
           await updateDoc(medicDocRef, {
@@ -330,13 +321,14 @@ const Pacienti: React.FC = () => {
         } else {
           console.error('No user logged in.');
         }
-    
+  
         if (medic_id && patientData.medic_id === medic_id) {
           setDataSource(prevDataSource => {
             const newDataSource = [...prevDataSource, { ...patientData, id: patientUid }];
-            return newDataSource;
+              return newDataSource.filter(patient => patient.medic_id === medic_id);
           });
         }
+        
       } else {
         console.error('No user created.');
       }
@@ -344,14 +336,15 @@ const Pacienti: React.FC = () => {
       console.error('Error creating user:', error);
     }
   };
-  
-  
+
+
+
   const handlePacient = async () => {
     formDatePacient.validateFields().then(async (values) => {
       console.log("Submitted values:", values);
-  
+
       const processedValues: Partial<Item> = { ...values };
-  
+
       const numePrenume = `${values.nume} ${values.prenume}`;
       processedValues.nume_prenume = numePrenume;
       delete processedValues.nume;
@@ -371,7 +364,7 @@ const Pacienti: React.FC = () => {
       if (values.apartament) {
         adresa += `, Ap. ${values.apartament}`;
       }
-  
+
       adresa += `, Cod poștal: ${values.codPostal}, Loc. ${values.oras}, Jud. ${values.judet}`;
       processedValues.adresa = adresa;
       delete processedValues.strada;
@@ -385,7 +378,6 @@ const Pacienti: React.FC = () => {
   
       if (editing) {
         await updateDoc(doc(db, "pacienti", editing.id), processedValues);
-        setDataSource(prevDataSource => prevDataSource.map(patient => patient.id === editing.id ? { ...patient, ...processedValues } : patient));
       } else {
         await addPatient(processedValues as Item); 
       }
@@ -393,9 +385,16 @@ const Pacienti: React.FC = () => {
       setIsModalVisible(false);
       setEditing(null);
       formDatePacient.resetFields();
+  
+      const data = await getDocs(collection(db, "pacienti"));
+      const filteredData = data.docs
+        .map((doc) => ({ ...doc.data(), id: doc.id }) as Item)
+        .filter((patient) => patient.medic_id === loggedInUserId);
+  
+      setDataSource(filteredData);
     });
   };
-  
+
 
   const handleSelectPatient = (patient: Item) => {
     fetchUltimeleRecomandari(patient.id);
@@ -572,26 +571,25 @@ const handleSalveazaLimite = async () => {
 };
 
 
-const handleDelete = async (id: string) => {
-  try {
-    await deleteDoc(doc(db, "pacienti", id));
 
-    if (loggedInUserId) {
-      const medicDocRef = doc(db, "medici", loggedInUserId);
-      await updateDoc(medicDocRef, {
-        pacienti: arrayRemove(id)
-      });
-    } else {
-      console.error('No user logged in.');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "pacienti", id));
+  
+      if (loggedInUserId) {
+        const medicDocRef = doc(db, "medici", loggedInUserId);
+        await updateDoc(medicDocRef, {
+          pacienti: arrayRemove(id)
+        });
+      } else {
+        console.error('No user logged in.');
+      }
+  
+      setDataSource(prevDataSource => prevDataSource.filter(patient => patient.id !== id));
+    } catch(error) {
+      console.error("Error deleting patient:", error);
     }
-
-    setDataSource(prevDataSource => prevDataSource.filter(patient => patient.id !== id));
-  } catch(error) {
-    console.error("Error deleting patient:", error);
-  }
-};
-
-
+  };
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -1502,7 +1500,7 @@ const handleDelete = async (id: string) => {
       <LineChart data={formattedECGData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} />
+        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} domain={[650, 700]}/>
        
         <Line type="monotone" dataKey="value" stroke="#d80242" dot={false} />
       </LineChart>
