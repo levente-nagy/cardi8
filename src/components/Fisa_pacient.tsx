@@ -336,7 +336,7 @@ const UserProfilePage: React.FC = () => {
       <LineChart data={formattedECGData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="time" label={{ value: 'Time (s)', position: 'insideBottomRight', offset: -5 }} />
-        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} />
+        <YAxis label={{ value: 'Voltage (mV)', angle: -90, position: 'insideLeft' }} domain={[650, 700]}/>
        
         <Line type="monotone" dataKey="value" stroke="#d80242" dot={false} />
       </LineChart>
